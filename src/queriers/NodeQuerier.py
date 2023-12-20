@@ -98,14 +98,3 @@ class NodeQuerier:
         for i in range(0, len(l), n):  
             yield l[i:i + n] 
 
-    
-
-if __name__ == "__main__":
-    grpc_endpoint = "grpc.sentinel.co:9090"
-    channel = grpc.insecure_channel(grpc_endpoint)
-    Querier = NodeQuerier(channel)
-    active_nodes = Querier.QueryNodes(1)
-    Querier.QueryAllNodesStatus(active_nodes)
-    Querier.QueryAllNodesStatus(active_nodes)
-
-
