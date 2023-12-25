@@ -8,7 +8,7 @@ class DepositQuerier:
         self.__channel = channel
         self.__stub = sentinel_deposit_v1_querier_pb2_grpc.QueryServiceStub(self.__channel)
 
-    def QueryDeposit(self, address):
+    def QueryDeposit(self, address: str):
         try:
             r = self.__stub.QueryDeposit(sentinel_deposit_v1_querier_pb2.QueryDepositRequest(address=address))
         except grpc._channel._InactiveRpcError as e:

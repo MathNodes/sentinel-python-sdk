@@ -1,13 +1,14 @@
 import sentinel_protobuf.sentinel.node.v2.querier_pb2 as sentinel_node_v2_querier_pb2
 import sentinel_protobuf.sentinel.node.v2.querier_pb2_grpc as sentinel_node_v2_querier_pb2_grpc 
 import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
+import sentinel_protobuf.sentinel.node.v2.node_pb2 as node_pb2
 import grpc
 import urllib.request
 import ssl
 import threading
 
 class NodeQuerier:
-    def __init__(self, channel, status_fetch_timeout):
+    def __init__(self, channel, status_fetch_timeout: int):
         self.status_fetch_timeout = status_fetch_timeout
         self.__channel = channel
         self.__stub = sentinel_node_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
@@ -16,11 +17,11 @@ class NodeQuerier:
         self.__ssl_ctx.verify_mode = ssl.CERT_NONE
         self.__nodes_status_cache = {}
 
-    def QueryNode(self, address):
+    def QueryNode(self, address: str):
         r = self.__stub.QueryNode(sentinel_node_v2_querier_pb2.QueryNodeRequest(address=address))
         return r.node
 
-    def QueryNodes(self, statusEnum):
+    def QueryNodes(self, statusEnum: int):
         fetched_nodes = []
         next_key = 0x01
 
@@ -37,11 +38,11 @@ class NodeQuerier:
 
         return fetched_nodes
 
-    def QueryNumOfNodesWithStatus(self, statusEnum):
+    def QueryNumOfNodesWithStatus(self, statusEnum: int):
         r = self.__stub.QueryNodes(sentinel_node_v2_querier_pb2.QueryNodesRequest(status=statusEnum))
         return r.pagination.total
 
-    def QueryNodeStatus(self, node, is_in_thread=False):
+    def QueryNodeStatus(self, node: node_pb2.Node, is_in_thread=False):
         node_endpoint = node.remote_url
         try:
             contents = urllib.request.urlopen(f"{node_endpoint}/status", context = self.__ssl_ctx, timeout=self.status_fetch_timeout).read()
@@ -56,7 +57,7 @@ class NodeQuerier:
         else:
             return contents
 
-    def QueryNodesStatus(self, nodes, n_threads = 8):
+    def QueryNodesStatus(self, nodes: list[node_pb2.Node], n_threads = 8):
         chunks = list(self.__split_into_chunks(nodes, n_threads))
         cur_threads = []
         for c in chunks:
@@ -72,7 +73,7 @@ class NodeQuerier:
         return result
 
 
-    def QueryNodesForPlan(self, plan_id, statusEnum):
+    def QueryNodesForPlan(self, plan_id: int, statusEnum: int):
         fetched_nodes = []
         next_key = 0x01
 
@@ -89,7 +90,7 @@ class NodeQuerier:
 
         return fetched_nodes
 
-    def __QueryNodesChunk(self, chunk):
+    def __QueryNodesChunk(self, chunk: list[node_pb2.Node]):
         for node in chunk:
             self.QueryNodeStatus(node, True)
 

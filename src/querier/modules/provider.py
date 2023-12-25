@@ -8,7 +8,7 @@ class ProviderQuerier:
         self.__channel = channel
         self.__stub = sentinel_provider_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
 
-    def QueryProvider(self, address):
+    def QueryProvider(self, address: str):
         try:
             r = self.__stub.QueryProvider(sentinel_provider_v2_querier_pb2.QueryProviderRequest(address = address))
         except grpc._channel._InactiveRpcError as e:
@@ -17,7 +17,7 @@ class ProviderQuerier:
 
         return r.provider
 
-    def QueryProviders(self, statusEnum):
+    def QueryProviders(self, statusEnum: int):
         fetched_providers = []
         next_key = 0x01
 

@@ -1,4 +1,5 @@
 import sentinel_protobuf.sentinel.swap.v1.querier_pb2 as sentinel_swap_v1_querier_pb2
+import sentinel_protobuf.sentinel.swap.v1.swap_pb2 as swap_pb2
 import sentinel_protobuf.sentinel.swap.v1.querier_pb2_grpc as sentinel_swap_v1_querier_pb2_grpc
 import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import grpc
@@ -8,7 +9,7 @@ class SwapQuerier:
         self.__channel = channel
         self.__stub = sentinel_swap_v1_querier_pb2_grpc.QueryServiceStub(self.__channel)
 
-    def QuerySwap(self, tx_hash):
+    def QuerySwap(self, tx_hash: bytes):
         try:
             r = self.__stub.QuerySwap(sentinel_swap_v1_querier_pb2.QuerySwapRequest(tx_hash = tx_hash))
         except grpc._channel._InactiveRpcError as e:

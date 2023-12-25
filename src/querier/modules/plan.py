@@ -8,7 +8,7 @@ class PlanQuerier:
         self.__channel = channel
         self.__stub = sentinel_plan_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
 
-    def QueryPlan(self, plan_id):
+    def QueryPlan(self, plan_id: int):
         try:
             r = self.__stub.QueryPlan(sentinel_plan_v2_querier_pb2.QueryPlanRequest(id=plan_id))
         except grpc._channel._InactiveRpcError as e:
@@ -17,7 +17,7 @@ class PlanQuerier:
 
         return r.plan
 
-    def QueryPlansForProvider(self, address, statusEnum):
+    def QueryPlansForProvider(self, address: str, statusEnum: int):
         fetched_plans = []
         next_key = 0x01
 
@@ -34,7 +34,7 @@ class PlanQuerier:
 
         return fetched_plans
 
-    def QueryPlans(self, statusEnum):
+    def QueryPlans(self, statusEnum: int):
         fetched_plans = []
         next_key = 0x01
 

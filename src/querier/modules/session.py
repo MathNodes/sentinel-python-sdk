@@ -8,7 +8,7 @@ class SessionQuerier:
         self.__channel = channel
         self.__stub = sentinel_session_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
 
-    def QuerySession(self, sess_id):
+    def QuerySession(self, sess_id: int):
         try:
             r = self.__stub.QuerySession(sentinel_session_v2_querier_pb2.QuerySessionRequest(id = sess_id))
         except grpc._channel._InactiveRpcError as e:
@@ -34,7 +34,7 @@ class SessionQuerier:
 
         return fetched_sessions
 
-    def QuerySessionsForAccount(self, address):
+    def QuerySessionsForAccount(self, address: str):
         fetched_sessions = []
         next_key = 0x01
 
@@ -51,7 +51,7 @@ class SessionQuerier:
 
         return fetched_sessions
 
-    def QuerySessionsForAllocation(self, address, alloc_id):
+    def QuerySessionsForAllocation(self, address: str, alloc_id: int):
         fetched_sessions = []
         next_key = 0x01
 
@@ -68,7 +68,7 @@ class SessionQuerier:
 
         return fetched_sessions
 
-    def QuerySessionsForNode(self, address):
+    def QuerySessionsForNode(self, address: str):
         fetched_sessions = []
         next_key = 0x01
 
@@ -85,7 +85,7 @@ class SessionQuerier:
 
         return fetched_sessions
 
-    def QuerySessionsForSubscription(self, subscr_id):
+    def QuerySessionsForSubscription(self, subscr_id: int):
         fetched_sessions = []
         next_key = 0x01
 

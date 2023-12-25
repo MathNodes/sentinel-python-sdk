@@ -1,6 +1,7 @@
 import sentinel_protobuf.sentinel.subscription.v2.querier_pb2 as sentinel_subscription_v2_querier_pb2
 import sentinel_protobuf.sentinel.subscription.v2.querier_pb2_grpc as sentinel_subscription_v2_querier_pb2_grpc
 import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
+import sentinel_protobuf.sentinel.subscription.v2.subscription_pb2 as subscription_pb2
 import grpc
 
 class SubscriptionQuerier:
@@ -8,7 +9,7 @@ class SubscriptionQuerier:
         self.__channel = channel
         self.__stub = sentinel_subscription_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
 
-    def QuerySubscription(self, subscr_id):
+    def QuerySubscription(self, subscr_id: int):
         try:
             r = self.__stub.QuerySubscription(sentinel_subscription_v2_querier_pb2.QuerySubscriptionRequest(id = subscr_id))
         except grpc._channel._InactiveRpcError as e:
@@ -34,7 +35,7 @@ class SubscriptionQuerier:
 
         return fetched_subscriptions
 
-    def QueryAllocation(self, address, alloc_id):
+    def QueryAllocation(self, address: str, alloc_id: int):
         try:
             r = self.__stub.QueryAllocation(sentinel_subscription_v2_querier_pb2.QueryAllocationRequest(address = address, id = alloc_id))
         except grpc._channel._InactiveRpcError as e:
@@ -43,7 +44,7 @@ class SubscriptionQuerier:
 
         return r.allocation
 
-    def QueryAllocations(self, alloc_id):
+    def QueryAllocations(self, alloc_id: int):
         fetched_allocations = []
         next_key = 0x01
 
@@ -60,7 +61,7 @@ class SubscriptionQuerier:
 
         return fetched_allocations
 
-    def QueryPayout(self, payout_id):
+    def QueryPayout(self, payout_id: int):
         try:
             r = self.__stub.QueryPayout(sentinel_subscription_v2_querier_pb2.QueryPayoutRequest(id = payout_id))
         except grpc._channel._InactiveRpcError as e:
@@ -86,7 +87,7 @@ class SubscriptionQuerier:
 
         return fetched_payouts
         
-    def QueryPayoutsForAccount(self, address):
+    def QueryPayoutsForAccount(self, address: str):
         fetched_payouts = []
         next_key = 0x01
 
@@ -103,7 +104,7 @@ class SubscriptionQuerier:
 
         return fetched_payouts
 
-    def QueryPayoutsForNode(self, address):
+    def QueryPayoutsForNode(self, address: str):
         fetched_payouts = []
         next_key = 0x01
 
@@ -120,7 +121,7 @@ class SubscriptionQuerier:
 
         return fetched_payouts
 
-    def QuerySubscriptionsForAccount(self, address):
+    def QuerySubscriptionsForAccount(self, address: str):
         fetched_subscriptions = []
         next_key = 0x01
 
@@ -137,7 +138,7 @@ class SubscriptionQuerier:
 
         return fetched_subscriptions
 
-    def QuerySubscriptionsForNode(self, address):
+    def QuerySubscriptionsForNode(self, address: str):
         fetched_subscriptions = []
         next_key = 0x01
 
@@ -154,7 +155,7 @@ class SubscriptionQuerier:
 
         return fetched_subscriptions
     
-    def QuerySubscriptionsForPlan(self, plan_id):
+    def QuerySubscriptionsForPlan(self, plan_id: int):
         fetched_subscriptions = []
         next_key = 0x01
 
