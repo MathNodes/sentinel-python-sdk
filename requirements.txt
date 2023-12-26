@@ -1,0 +1,2 @@
+sentinel-protobuf==0.3.2
+cosmpy==0.9.1
