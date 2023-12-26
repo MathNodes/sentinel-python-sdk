@@ -16,7 +16,7 @@ class SubscriptionQuerier:
             print(e)
             return None
 
-        return r.subscription
+        return self.__ConvertAnyToNodeSubscription(r.subscription.value)
 
     def QuerySubscriptions(self):
         fetched_subscriptions = []
@@ -31,7 +31,7 @@ class SubscriptionQuerier:
 
             next_key = r.pagination.next_key
             for s in r.subscriptions:
-                fetched_subscriptions.append(s)
+                fetched_subscriptions.append(self.__ConvertAnyToNodeSubscription(s.value))
 
         return fetched_subscriptions
 
@@ -134,7 +134,7 @@ class SubscriptionQuerier:
 
             next_key = r.pagination.next_key
             for s in r.subscriptions:
-                fetched_subscriptions.append(s)
+                fetched_subscriptions.append(self.__ConvertAnyToPlanSubscription(s.value))
 
         return fetched_subscriptions
 
@@ -151,7 +151,7 @@ class SubscriptionQuerier:
 
             next_key = r.pagination.next_key
             for s in r.subscriptions:
-                fetched_subscriptions.append(s)
+                fetched_subscriptions.append(self.__ConvertAnyToNodeSubscription(s.value))
 
         return fetched_subscriptions
     
@@ -168,6 +168,20 @@ class SubscriptionQuerier:
 
             next_key = r.pagination.next_key
             for s in r.subscriptions:
-                fetched_subscriptions.append(s)
+                fetched_subscriptions.append(self.__ConvertAnyToPlanSubscription(s.value))
 
         return fetched_subscriptions
+
+
+    # Node subscriptions are returned by grpc querier in google's 'Any' type and need to be converted into desired protobuf type
+    #
+    #
+    def __ConvertAnyToNodeSubscription(self, any_proto: bytes):
+        nodesub = subscription_pb2.NodeSubscription()
+        nodesub.ParseFromString(any_proto)
+        return nodesub
+
+    def __ConvertAnyToPlanSubscription(self, any_proto: bytes):
+        plansub = subscription_pb2.PlanSubscription()
+        plansub.ParseFromString(any_proto)
+        return plansub
