@@ -3,7 +3,7 @@ import json
 import sentinel_protobuf.cosmos.base.reflection.v1beta1.reflection_pb2 as cosmos_reflection_v1beta1_reflection_pb2 
 
 from sentinel_sdk.querier.multiquerier import SentinelQuerier
-from sentinel_sdk.transactor.transactor import SentinelTransactor
+# from sentinel_sdk.transactor.transactor import SentinelTransactor
 
 
 class SDKInstance:
@@ -14,7 +14,7 @@ class SDKInstance:
             raise ConnectionError("gRPC endpoint is invalid or not responding")
 
         self.multiquerier = SentinelQuerier(channel)
-        self.transactor = SentinelTransactor(grpcaddr, grpcport, channel)
+        # self.transactor = SentinelTransactor(grpcaddr, grpcport, channel)
     
 
     def __create_and_verify_channel(self, grpcaddr, grpcport):

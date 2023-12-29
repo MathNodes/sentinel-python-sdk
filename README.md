@@ -16,6 +16,6 @@ pip install --editable .
 ```python
 from sentinel_sdk.sdk import SDKInstance
 my_sdk = SDKInstance("grpc.sentinel.co", 9090)
-my_sdk.multiquerier.node_querier.QueryNodes()
+my_sdk.multiquerier.node_querier.QueryNodes(1)
 ```
 
