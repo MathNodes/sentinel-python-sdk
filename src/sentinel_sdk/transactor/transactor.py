@@ -1,3 +1,5 @@
+import os
+
 import sentinel_protobuf.cosmos.auth.v1beta1.auth_pb2 as cosmos_auth_v1beta1_auth_pb2
 import sentinel_protobuf.cosmos.auth.v1beta1.query_pb2 as cosmos_auth_v1beta1_query_pb2
 from bip_utils import Bech32Encoder, Bip39SeedGenerator, Bip44, Bip44Coins
@@ -11,9 +13,13 @@ from sentinel_protobuf.sentinel.node.v2.msg_pb2 import MsgSubscribeRequest
 class SentinelTransactor:
     def __init__(self, grpcaddr, grpcport, query_channel):
         self._query_channel = query_channel
-        with open("transactor/test.seed", "r") as f:
-            mnemonic = f.read()
-        self.__setup_account_and_client(mnemonic, grpcaddr, grpcport)
+        self.seed_path = os.path.join(os.getcwd(), "test.seed")
+        if os.path.isfile(self.seed_path) is True:
+            with open(self.seed_path, "r") as f:
+                mnemonic = f.read()
+            self.__setup_account_and_client(mnemonic, grpcaddr, grpcport)
+        else:
+            print(f"{self.seed_path} file not found")
 
     def __setup_account_and_client(self, mnemonic, grpcaddr, grpcport):
         seed_bytes = Bip39SeedGenerator(mnemonic).Generate()
