@@ -6,6 +6,7 @@ from sentinel_sdk.querier.modules.session import SessionQuerier
 from sentinel_sdk.querier.modules.subscription import SubscriptionQuerier
 from sentinel_sdk.querier.modules.swap import SwapQuerier
 
+
 class SentinelQuerier:
     def __init__(self, channel):
         self._channel = channel
