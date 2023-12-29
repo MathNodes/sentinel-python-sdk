@@ -1,3 +1,5 @@
+import grpc
+
 from sentinel_sdk.querier.modules.deposit import DepositQuerier
 from sentinel_sdk.querier.modules.node import NodeQuerier
 from sentinel_sdk.querier.modules.plan import PlanQuerier
@@ -8,7 +10,7 @@ from sentinel_sdk.querier.modules.swap import SwapQuerier
 
 
 class SentinelQuerier:
-    def __init__(self, channel):
+    def __init__(self, channel: grpc._channel.Channel):
         self._channel = channel
         self.node_querier = NodeQuerier(self._channel, 10)
         self.deposit_querier = DepositQuerier(self._channel)

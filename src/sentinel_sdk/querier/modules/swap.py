@@ -1,3 +1,5 @@
+from typing import Any
+
 import grpc
 import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.swap.v1.querier_pb2 as sentinel_swap_v1_querier_pb2
@@ -7,11 +9,11 @@ import sentinel_protobuf.sentinel.swap.v1.querier_pb2_grpc as sentinel_swap_v1_q
 
 
 class SwapQuerier:
-    def __init__(self, channel):
+    def __init__(self, channel: grpc._channel.Channel):
         self.__channel = channel
         self.__stub = sentinel_swap_v1_querier_pb2_grpc.QueryServiceStub(self.__channel)
 
-    def QuerySwap(self, tx_hash: bytes):
+    def QuerySwap(self, tx_hash: bytes) -> Any:
         try:
             r = self.__stub.QuerySwap(
                 sentinel_swap_v1_querier_pb2.QuerySwapRequest(tx_hash=tx_hash)
@@ -22,7 +24,7 @@ class SwapQuerier:
 
         return r.swap
 
-    def QuerySwaps(self):
+    def QuerySwaps(self) -> list:
         fetched_swaps = []
         next_key = 0x01
 

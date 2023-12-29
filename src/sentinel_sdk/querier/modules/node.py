@@ -1,7 +1,9 @@
 import ssl
 import threading
 import urllib.request
+from typing import Any
 
+import grpc
 import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.node.v2.node_pb2 as node_pb2
 import sentinel_protobuf.sentinel.node.v2.querier_pb2 as sentinel_node_v2_querier_pb2
@@ -9,35 +11,38 @@ import sentinel_protobuf.sentinel.node.v2.querier_pb2_grpc as sentinel_node_v2_q
 
 
 class NodeQuerier:
-    def __init__(self, channel, status_fetch_timeout: int):
+    def __init__(self, channel: grpc._channel.Channel, status_fetch_timeout: int):
         self.status_fetch_timeout = status_fetch_timeout
         self.__channel = channel
         self.__stub = sentinel_node_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
+
+        # Disable SSL verification
         self.__ssl_ctx = ssl.create_default_context()
         self.__ssl_ctx.check_hostname = False
         self.__ssl_ctx.verify_mode = ssl.CERT_NONE
+
         self.__nodes_status_cache = {}
 
-    def QueryNode(self, address: str):
+    def QueryNode(self, address: str) -> Any:
         r = self.__stub.QueryNode(
             sentinel_node_v2_querier_pb2.QueryNodeRequest(address=address)
         )
         return r.node
 
-    def QueryNodes(self, statusEnum: int):
+    def QueryNodes(self, status: int) -> list:
         fetched_nodes = []
         next_key = 0x01
 
         while next_key:
             if next_key == 0x01:
                 r = self.__stub.QueryNodes(
-                    sentinel_node_v2_querier_pb2.QueryNodesRequest(status=statusEnum)
+                    sentinel_node_v2_querier_pb2.QueryNodesRequest(status=status)
                 )
             else:
                 next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
                 r = self.__stub.QueryNodes(
                     sentinel_node_v2_querier_pb2.QueryNodesRequest(
-                        status=statusEnum, pagination=next_page_req
+                        status=status, pagination=next_page_req
                     )
                 )
 
@@ -47,13 +52,13 @@ class NodeQuerier:
 
         return fetched_nodes
 
-    def QueryNumOfNodesWithStatus(self, statusEnum: int):
+    def QueryNumOfNodesWithStatus(self, status: int) -> int:
         r = self.__stub.QueryNodes(
-            sentinel_node_v2_querier_pb2.QueryNodesRequest(status=statusEnum)
+            sentinel_node_v2_querier_pb2.QueryNodesRequest(status=status)
         )
         return r.pagination.total
 
-    def QueryNodeStatus(self, node: node_pb2.Node, is_in_thread=False):
+    def QueryNodeStatus(self, node: node_pb2.Node, is_in_thread: bool = False) -> str:
         node_endpoint = node.remote_url
         try:
             contents = urllib.request.urlopen(
@@ -72,7 +77,7 @@ class NodeQuerier:
         else:
             return contents
 
-    def QueryNodesStatus(self, nodes: list[node_pb2.Node], n_threads=8):
+    def QueryNodesStatus(self, nodes: list[node_pb2.Node], n_threads: int = 8) -> dict:
         chunks = list(self.__split_into_chunks(nodes, n_threads))
         cur_threads = []
         for c in chunks:
@@ -87,7 +92,7 @@ class NodeQuerier:
 
         return result
 
-    def QueryNodesForPlan(self, plan_id: int, statusEnum: int):
+    def QueryNodesForPlan(self, plan_id: int, status: int) -> list:
         fetched_nodes = []
         next_key = 0x01
 
@@ -95,14 +100,14 @@ class NodeQuerier:
             if next_key == 0x01:
                 r = self.__stub.QueryNodesForPlan(
                     sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest(
-                        id=plan_id, status=statusEnum
+                        id=plan_id, status=status
                     )
                 )
             else:
                 next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
                 r = self.__stub.QueryNodesForPlan(
                     sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest(
-                        id=plan_id, status=statusEnum, pagination=next_page_req
+                        id=plan_id, status=status, pagination=next_page_req
                     )
                 )
 

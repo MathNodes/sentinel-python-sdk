@@ -1,3 +1,5 @@
+from typing import Any
+
 import grpc
 import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.session.v2.querier_pb2 as sentinel_session_v2_querier_pb2
@@ -5,13 +7,13 @@ import sentinel_protobuf.sentinel.session.v2.querier_pb2_grpc as sentinel_sessio
 
 
 class SessionQuerier:
-    def __init__(self, channel):
+    def __init__(self, channel: grpc._channel.Channel):
         self.__channel = channel
         self.__stub = sentinel_session_v2_querier_pb2_grpc.QueryServiceStub(
             self.__channel
         )
 
-    def QuerySession(self, sess_id: int):
+    def QuerySession(self, sess_id: int) -> Any:
         try:
             r = self.__stub.QuerySession(
                 sentinel_session_v2_querier_pb2.QuerySessionRequest(id=sess_id)
@@ -22,7 +24,7 @@ class SessionQuerier:
 
         return r.session
 
-    def QuerySessions(self):
+    def QuerySessions(self) -> list:
         fetched_sessions = []
         next_key = 0x01
 
@@ -45,7 +47,7 @@ class SessionQuerier:
 
         return fetched_sessions
 
-    def QuerySessionsForAccount(self, address: str):
+    def QuerySessionsForAccount(self, address: str) -> list:
         fetched_sessions = []
         next_key = 0x01
 
@@ -70,7 +72,7 @@ class SessionQuerier:
 
         return fetched_sessions
 
-    def QuerySessionsForAllocation(self, address: str, alloc_id: int):
+    def QuerySessionsForAllocation(self, address: str, alloc_id: int) -> list:
         fetched_sessions = []
         next_key = 0x01
 
@@ -95,7 +97,7 @@ class SessionQuerier:
 
         return fetched_sessions
 
-    def QuerySessionsForNode(self, address: str):
+    def QuerySessionsForNode(self, address: str) -> list:
         fetched_sessions = []
         next_key = 0x01
 
@@ -120,7 +122,7 @@ class SessionQuerier:
 
         return fetched_sessions
 
-    def QuerySessionsForSubscription(self, subscr_id: int):
+    def QuerySessionsForSubscription(self, subscr_id: int) -> list:
         fetched_sessions = []
         next_key = 0x01
 

@@ -1,3 +1,5 @@
+from typing import Any
+
 import grpc
 import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.provider.v2.querier_pb2 as sentinel_provider_v2_querier_pb2
@@ -5,13 +7,13 @@ import sentinel_protobuf.sentinel.provider.v2.querier_pb2_grpc as sentinel_provi
 
 
 class ProviderQuerier:
-    def __init__(self, channel):
+    def __init__(self, channel: grpc._channel.Channel):
         self.__channel = channel
         self.__stub = sentinel_provider_v2_querier_pb2_grpc.QueryServiceStub(
             self.__channel
         )
 
-    def QueryProvider(self, address: str):
+    def QueryProvider(self, address: str) -> Any:
         try:
             r = self.__stub.QueryProvider(
                 sentinel_provider_v2_querier_pb2.QueryProviderRequest(address=address)
@@ -22,7 +24,7 @@ class ProviderQuerier:
 
         return r.provider
 
-    def QueryProviders(self, statusEnum: int):
+    def QueryProviders(self, status: int) -> list:
         fetched_providers = []
         next_key = 0x01
 
@@ -30,14 +32,14 @@ class ProviderQuerier:
             if next_key == 0x01:
                 r = self.__stub.QueryProviders(
                     sentinel_provider_v2_querier_pb2.QueryProvidersRequest(
-                        status=statusEnum
+                        status=status
                     )
                 )
             else:
                 next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
                 r = self.__stub.QueryProviders(
                     sentinel_provider_v2_querier_pb2.QueryProvidersRequest(
-                        status=statusEnum, pagination=next_page_req
+                        status=status, pagination=next_page_req
                     )
                 )
 

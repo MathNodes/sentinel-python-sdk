@@ -22,6 +22,7 @@ https://pre-commit.com/index.html
 ### Usage example:
 ```python
 from sentinel_sdk.sdk import SDKInstance
+from sentinel_sdk.types import Status
 my_sdk = SDKInstance("grpc.sentinel.co", 9090)
-my_sdk.multiquerier.node_querier.QueryNodes(1)
+my_sdk.multiquerier.node_querier.QueryNodes(Status.ACTIVE)
 ```
