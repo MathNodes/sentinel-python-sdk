@@ -1,17 +1,15 @@
 from typing import Any
 
 import grpc
-import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.deposit.v1.querier_pb2 as sentinel_deposit_v1_querier_pb2
 import sentinel_protobuf.sentinel.deposit.v1.querier_pb2_grpc as sentinel_deposit_v1_querier_pb2_grpc
 
+from sentinel_sdk.querier.querier import Querier
 
-class DepositQuerier:
+
+class DepositQuerier(Querier):
     def __init__(self, channel: grpc.Channel):
-        self.__channel = channel
-        self.__stub = sentinel_deposit_v1_querier_pb2_grpc.QueryServiceStub(
-            self.__channel
-        )
+        self.__stub = sentinel_deposit_v1_querier_pb2_grpc.QueryServiceStub(channel)
 
     def QueryDeposit(self, address: str) -> Any:
         try:
@@ -24,25 +22,9 @@ class DepositQuerier:
 
         return r.deposit
 
-    def QueryDeposits(self) -> Any:
-        fetched_deposits = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QueryDeposits(
-                    sentinel_deposit_v1_querier_pb2.QueryDepositsRequest()
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QueryDeposits(
-                    sentinel_deposit_v1_querier_pb2.QueryDepositsRequest(
-                        pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for d in r.deposits:
-                fetched_deposits.append(d)
-
-        return fetched_deposits
+    def QueryDeposits(self) -> list:
+        return self.QueryAll(
+            query=self.__stub.QueryDeposits,
+            request=sentinel_deposit_v1_querier_pb2.QueryDepositsRequest,
+            attribute="deposits",
+        )
