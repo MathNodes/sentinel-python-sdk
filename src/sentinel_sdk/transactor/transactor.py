@@ -16,7 +16,7 @@ class SentinelTransactor:
         self,
         grpcaddr: str,
         grpcport: int,
-        query_channel: grpc._channel.Channel,
+        query_channel: grpc.Channel,
         ssl: bool = False,
     ):
         self._query_channel = query_channel

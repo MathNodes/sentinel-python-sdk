@@ -7,7 +7,7 @@ import sentinel_protobuf.sentinel.deposit.v1.querier_pb2_grpc as sentinel_deposi
 
 
 class DepositQuerier:
-    def __init__(self, channel: grpc._channel.Channel):
+    def __init__(self, channel: grpc.Channel):
         self.__channel = channel
         self.__stub = sentinel_deposit_v1_querier_pb2_grpc.QueryServiceStub(
             self.__channel

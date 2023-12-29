@@ -7,7 +7,7 @@ import sentinel_protobuf.sentinel.plan.v2.querier_pb2_grpc as sentinel_plan_v2_q
 
 
 class PlanQuerier:
-    def __init__(self, channel: grpc._channel.Channel):
+    def __init__(self, channel: grpc.Channel):
         self.__channel = channel
         self.__stub = sentinel_plan_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
 
@@ -30,14 +30,14 @@ class PlanQuerier:
             if next_key == 0x01:
                 r = self.__stub.QueryPlansForProvider(
                     sentinel_plan_v2_querier_pb2.QueryPlansForProviderRequest(
-                        address=address, status=status
+                        address=address, status=status.value
                     )
                 )
             else:
                 next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
                 r = self.__stub.QueryPlansForProvider(
                     sentinel_plan_v2_querier_pb2.QueryPlansForProviderRequest(
-                        address=address, status=status, pagination=next_page_req
+                        address=address, status=status.value, pagination=next_page_req
                     )
                 )
 
@@ -54,13 +54,13 @@ class PlanQuerier:
         while next_key:
             if next_key == 0x01:
                 r = self.__stub.QueryPlans(
-                    sentinel_plan_v2_querier_pb2.QueryPlansRequest(status=status)
+                    sentinel_plan_v2_querier_pb2.QueryPlansRequest(status=status.value)
                 )
             else:
                 next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
                 r = self.__stub.QueryPlans(
                     sentinel_plan_v2_querier_pb2.QueryPlansRequest(
-                        status=status, pagination=next_page_req
+                        status=status.value, pagination=next_page_req
                     )
                 )
 

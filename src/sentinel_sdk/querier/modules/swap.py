@@ -9,7 +9,7 @@ import sentinel_protobuf.sentinel.swap.v1.querier_pb2_grpc as sentinel_swap_v1_q
 
 
 class SwapQuerier:
-    def __init__(self, channel: grpc._channel.Channel):
+    def __init__(self, channel: grpc.Channel):
         self.__channel = channel
         self.__stub = sentinel_swap_v1_querier_pb2_grpc.QueryServiceStub(self.__channel)
 

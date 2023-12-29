@@ -11,7 +11,7 @@ import sentinel_protobuf.sentinel.node.v2.querier_pb2_grpc as sentinel_node_v2_q
 
 
 class NodeQuerier:
-    def __init__(self, channel: grpc._channel.Channel, status_fetch_timeout: int):
+    def __init__(self, channel: grpc.Channel, status_fetch_timeout: int):
         self.status_fetch_timeout = status_fetch_timeout
         self.__channel = channel
         self.__stub = sentinel_node_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
@@ -36,13 +36,13 @@ class NodeQuerier:
         while next_key:
             if next_key == 0x01:
                 r = self.__stub.QueryNodes(
-                    sentinel_node_v2_querier_pb2.QueryNodesRequest(status=status)
+                    sentinel_node_v2_querier_pb2.QueryNodesRequest(status=status.value)
                 )
             else:
                 next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
                 r = self.__stub.QueryNodes(
                     sentinel_node_v2_querier_pb2.QueryNodesRequest(
-                        status=status, pagination=next_page_req
+                        status=status.value, pagination=next_page_req
                     )
                 )
 
@@ -54,7 +54,7 @@ class NodeQuerier:
 
     def QueryNumOfNodesWithStatus(self, status: int) -> int:
         r = self.__stub.QueryNodes(
-            sentinel_node_v2_querier_pb2.QueryNodesRequest(status=status)
+            sentinel_node_v2_querier_pb2.QueryNodesRequest(status=status.value)
         )
         return r.pagination.total
 
@@ -100,14 +100,14 @@ class NodeQuerier:
             if next_key == 0x01:
                 r = self.__stub.QueryNodesForPlan(
                     sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest(
-                        id=plan_id, status=status
+                        id=plan_id, status=status.value
                     )
                 )
             else:
                 next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
                 r = self.__stub.QueryNodesForPlan(
                     sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest(
-                        id=plan_id, status=status, pagination=next_page_req
+                        id=plan_id, status=status.value, pagination=next_page_req
                     )
                 )
 

@@ -17,7 +17,7 @@ class SDKInstance:
 
     def __create_and_verify_channel(
         self, grpcaddr: str, grpcport: int, ssl: bool = False
-    ) -> grpc._channel.Channel:
+    ) -> grpc.Channel:
         channel = (
             grpc.secure_channel(
                 f"{grpcaddr}:{grpcport}", credentials=grpc.ssl_channel_credentials()

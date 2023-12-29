@@ -8,7 +8,7 @@ import sentinel_protobuf.sentinel.subscription.v2.subscription_pb2 as subscripti
 
 
 class SubscriptionQuerier:
-    def __init__(self, channel: grpc._channel.Channel):
+    def __init__(self, channel: grpc.Channel):
         self.__channel = channel
         self.__stub = sentinel_subscription_v2_querier_pb2_grpc.QueryServiceStub(
             self.__channel

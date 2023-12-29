@@ -7,7 +7,7 @@ import sentinel_protobuf.sentinel.session.v2.querier_pb2_grpc as sentinel_sessio
 
 
 class SessionQuerier:
-    def __init__(self, channel: grpc._channel.Channel):
+    def __init__(self, channel: grpc.Channel):
         self.__channel = channel
         self.__stub = sentinel_session_v2_querier_pb2_grpc.QueryServiceStub(
             self.__channel
