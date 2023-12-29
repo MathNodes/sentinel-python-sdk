@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinel_sdk"
+version = "0.0.1"
+description = "A Sentinel SDK Written in Python"
+authors = [
+    { name = "NAST0R" },
+    { name = "Tkd-Alex", email = "dev@ctrl-felix.de" },
+    { name = "MathNodes", email = "freQniK@mathnodes.com'" },
+]
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["sentinel_sdk", "mospy", "sentinel", "cosmos", "protobuf", "sentinel_protobuf"]
+license = {text = "GPL-3.0 license"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+dependencies = [
+    "sentinel-protobuf==0.3.3",
+    "grpcio>=1.51.1",
+    "bip-utils==2.9.0",
+    "mospy-wallet @ git+https://github.com/Tkd-Alex/mospy.git@master",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinel_sdk"]
