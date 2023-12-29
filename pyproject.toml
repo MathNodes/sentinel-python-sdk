@@ -12,7 +12,7 @@ authors = [
     { name = "MathNodes", email = "freQniK@mathnodes.com'" },
 ]
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 keywords = ["sentinel_sdk", "mospy", "sentinel", "cosmos", "protobuf", "sentinel_protobuf"]
 license = {text = "GPL-3.0 license"}
 classifiers = [

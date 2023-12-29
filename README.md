@@ -12,10 +12,16 @@ python -m venv venv
 pip install --editable .
 ```
 
+Please install pre-commit plugin, in order to follow [PEP8](https://peps.python.org/pep-0008/)
+```bash
+pip install pre-commit
+pre-commit install
+```
+https://pre-commit.com/index.html
+
 ### Usage example:
 ```python
 from sentinel_sdk.sdk import SDKInstance
 my_sdk = SDKInstance("grpc.sentinel.co", 9090)
 my_sdk.multiquerier.node_querier.QueryNodes(1)
 ```
-
