@@ -14,11 +14,11 @@ class SubscriptionQuerier(Querier):
             channel
         )
 
-    def QuerySubscription(self, subscr_id: int) -> Any:
+    def QuerySubscription(self, subscription_id: int) -> Any:
         try:
             r = self.__stub.QuerySubscription(
                 sentinel_subscription_v2_querier_pb2.QuerySubscriptionRequest(
-                    id=subscr_id
+                    id=subscription_id
                 )
             )
         except grpc._channel._InactiveRpcError as e:
@@ -28,17 +28,21 @@ class SubscriptionQuerier(Querier):
         return self.__ConvertAnyToNodeSubscription(r.subscription.value)
 
     def QuerySubscriptions(self) -> list:
-        return self.QueryAll(
+        subscriptions = self.QueryAll(
             query=self.__stub.QuerySubscriptions,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsRequest,
             attribute="subscriptions",
         )
+        return [
+            self.__ConvertAnyToNodeSubscription(subscription.value)
+            for subscription in subscriptions
+        ]
 
-    def QueryAllocation(self, address: str, allocation_id: int) -> list:
+    def QueryAllocation(self, address: str, subscription_id: int) -> list:
         try:
             r = self.__stub.QueryAllocation(
                 sentinel_subscription_v2_querier_pb2.QueryAllocationRequest(
-                    address=address, id=allocation_id
+                    address=address, id=subscription_id
                 )
             )
         except grpc._channel._InactiveRpcError as e:
@@ -47,12 +51,12 @@ class SubscriptionQuerier(Querier):
 
         return r.allocation
 
-    def QueryAllocations(self, allocation_id: int) -> list:
+    def QueryAllocations(self, subscription_id: int) -> list:
         return self.QueryAll(
             query=self.__stub.QueryAllocations,
             request=sentinel_subscription_v2_querier_pb2.QueryAllocationsRequest,
             attribute="allocations",
-            args={"id": allocation_id},
+            args={"id": subscription_id},
         )
 
     def QueryPayout(self, payout_id: int) -> Any:
@@ -90,28 +94,40 @@ class SubscriptionQuerier(Querier):
         )
 
     def QuerySubscriptionsForAccount(self, address: str) -> list:
-        return self.QueryAll(
+        subscriptions = self.QueryAll(
             query=self.__stub.QuerySubscriptionsForAccount,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForAccountRequest,
             attribute="subscriptions",
             args={"address": address},
         )
+        return [
+            self.__ConvertAnyToPlanSubscription(subscription.value)
+            for subscription in subscriptions
+        ]
 
     def QuerySubscriptionsForNode(self, address: str) -> list:
-        return self.QueryAll(
+        subscriptions = self.QueryAll(
             query=self.__stub.QuerySubscriptionsForNode,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForNodeRequest,
             attribute="subscriptions",
             args={"address": address},
         )
+        return [
+            self.__ConvertAnyToNodeSubscription(subscription.value)
+            for subscription in subscriptions
+        ]
 
     def QuerySubscriptionsForPlan(self, plan_id: int) -> list:
-        return self.QueryAll(
+        subscriptions = self.QueryAll(
             query=self.__stub.QuerySubscriptionsForPlan,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForPlanRequest,
             attribute="subscriptions",
             args={"id": plan_id},
         )
+        return [
+            self.__ConvertAnyToPlanSubscription(subscription.value)
+            for subscription in subscriptions
+        ]
 
     # Node subscriptions are returned by grpc querier in google's 'Any' type and need to be converted into desired protobuf type
     #
