@@ -4,7 +4,9 @@ import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagi
 
 
 class Querier:
-    def QueryAll(self, query: Any, request: Any, attribute: str, args={}) -> list:
+    def QueryAll(
+        self, query: Any, request: Any, attribute: str, args: dict = {}
+    ) -> list:
         items = []
         next_key = 0x01
 
