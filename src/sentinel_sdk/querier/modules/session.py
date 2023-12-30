@@ -1,17 +1,15 @@
 from typing import Any
 
 import grpc
-import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.session.v2.querier_pb2 as sentinel_session_v2_querier_pb2
 import sentinel_protobuf.sentinel.session.v2.querier_pb2_grpc as sentinel_session_v2_querier_pb2_grpc
 
+from sentinel_sdk.querier.querier import Querier
 
-class SessionQuerier:
+
+class SessionQuerier(Querier):
     def __init__(self, channel: grpc.Channel):
-        self.__channel = channel
-        self.__stub = sentinel_session_v2_querier_pb2_grpc.QueryServiceStub(
-            self.__channel
-        )
+        self.__stub = sentinel_session_v2_querier_pb2_grpc.QueryServiceStub(channel)
 
     def QuerySession(self, sess_id: int) -> Any:
         try:
@@ -25,124 +23,40 @@ class SessionQuerier:
         return r.session
 
     def QuerySessions(self) -> list:
-        fetched_sessions = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySessions(
-                    sentinel_session_v2_querier_pb2.QuerySessionsRequest()
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySessions(
-                    sentinel_session_v2_querier_pb2.QuerySessionsRequest(
-                        pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.sessions:
-                fetched_sessions.append(s)
-
-        return fetched_sessions
+        return self.QueryAll(
+            query=self.__stub.QuerySessions,
+            request=sentinel_session_v2_querier_pb2.QuerySessionsRequest,
+            attribute="sessions",
+        )
 
     def QuerySessionsForAccount(self, address: str) -> list:
-        fetched_sessions = []
-        next_key = 0x01
+        return self.QueryAll(
+            query=self.__stub.QuerySessionsForAccount,
+            request=sentinel_session_v2_querier_pb2.QuerySessionsForAccountRequest,
+            attribute="sessions",
+            args={"address": address},
+        )
 
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySessionsForAccount(
-                    sentinel_session_v2_querier_pb2.QuerySessionsForAccountRequest(
-                        address=address
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySessionsForAccount(
-                    sentinel_session_v2_querier_pb2.QuerySessionsForAccountRequest(
-                        address=address, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.sessions:
-                fetched_sessions.append(s)
-
-        return fetched_sessions
-
-    def QuerySessionsForAllocation(self, address: str, alloc_id: int) -> list:
-        fetched_sessions = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySessionsForAllocation(
-                    sentinel_session_v2_querier_pb2.QuerySessionsForAllocationRequest(
-                        address=address, id=alloc_id
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySessionsForAllocation(
-                    sentinel_session_v2_querier_pb2.QuerySessionsForAllocationRequest(
-                        address=address, id=alloc_id, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.sessions:
-                fetched_sessions.append(s)
-
-        return fetched_sessions
+    def QuerySessionsForAllocation(self, address: str, allocation_id: int) -> list:
+        return self.QueryAll(
+            query=self.__stub.QuerySessionsForAllocation,
+            request=sentinel_session_v2_querier_pb2.QuerySessionsForAllocationRequest,
+            attribute="sessions",
+            args={"address": address, "id": allocation_id},
+        )
 
     def QuerySessionsForNode(self, address: str) -> list:
-        fetched_sessions = []
-        next_key = 0x01
+        return self.QueryAll(
+            query=self.__stub.QuerySessionsForNode,
+            request=sentinel_session_v2_querier_pb2.QuerySessionsForNodeRequest,
+            attribute="sessions",
+            args={"address": address},
+        )
 
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySessionsForNode(
-                    sentinel_session_v2_querier_pb2.QuerySessionsForNodeRequest(
-                        address=address
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySessionsForNode(
-                    sentinel_session_v2_querier_pb2.QuerySessionsForNodeRequest(
-                        address=address, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.sessions:
-                fetched_sessions.append(s)
-
-        return fetched_sessions
-
-    def QuerySessionsForSubscription(self, subscr_id: int) -> list:
-        fetched_sessions = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySessionsForSubscription(
-                    sentinel_session_v2_querier_pb2.QuerySessionsForSubscriptionRequest(
-                        id=subscr_id
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySessionsForSubscription(
-                    sentinel_session_v2_querier_pb2.QuerySessionsForSubscriptionRequest(
-                        id=subscr_id, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.sessions:
-                fetched_sessions.append(s)
-
-        return fetched_sessions
+    def QuerySessionsForSubscription(self, subscription_id: int) -> list:
+        return self.QueryAll(
+            query=self.__stub.QuerySessionsForSubscription,
+            request=sentinel_session_v2_querier_pb2.QuerySessionsForSubscriptionRequest,
+            attribute="sessions",
+            args={"id": subscription_id},
+        )

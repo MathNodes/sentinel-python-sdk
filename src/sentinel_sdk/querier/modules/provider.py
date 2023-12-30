@@ -1,17 +1,15 @@
 from typing import Any
 
 import grpc
-import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.provider.v2.querier_pb2 as sentinel_provider_v2_querier_pb2
 import sentinel_protobuf.sentinel.provider.v2.querier_pb2_grpc as sentinel_provider_v2_querier_pb2_grpc
 
+from sentinel_sdk.querier.querier import Querier
 
-class ProviderQuerier:
+
+class ProviderQuerier(Querier):
     def __init__(self, channel: grpc.Channel):
-        self.__channel = channel
-        self.__stub = sentinel_provider_v2_querier_pb2_grpc.QueryServiceStub(
-            self.__channel
-        )
+        self.__stub = sentinel_provider_v2_querier_pb2_grpc.QueryServiceStub(channel)
 
     def QueryProvider(self, address: str) -> Any:
         try:
@@ -25,26 +23,9 @@ class ProviderQuerier:
         return r.provider
 
     def QueryProviders(self, status: int) -> list:
-        fetched_providers = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QueryProviders(
-                    sentinel_provider_v2_querier_pb2.QueryProvidersRequest(
-                        status=status.value
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QueryProviders(
-                    sentinel_provider_v2_querier_pb2.QueryProvidersRequest(
-                        status=status.value, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for p in r.providers:
-                fetched_providers.append(p)
-
-        return fetched_providers
+        return self.QueryAll(
+            query=self.__stub.QueryProviders,
+            request=sentinel_provider_v2_querier_pb2.QueryProvidersRequest,
+            attribute="providers",
+            args={"status": status.value},
+        )

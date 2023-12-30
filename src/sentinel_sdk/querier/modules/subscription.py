@@ -1,24 +1,24 @@
 from typing import Any
 
 import grpc
-import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.subscription.v2.querier_pb2 as sentinel_subscription_v2_querier_pb2
 import sentinel_protobuf.sentinel.subscription.v2.querier_pb2_grpc as sentinel_subscription_v2_querier_pb2_grpc
 import sentinel_protobuf.sentinel.subscription.v2.subscription_pb2 as subscription_pb2
 
+from sentinel_sdk.querier.querier import Querier
 
-class SubscriptionQuerier:
+
+class SubscriptionQuerier(Querier):
     def __init__(self, channel: grpc.Channel):
-        self.__channel = channel
         self.__stub = sentinel_subscription_v2_querier_pb2_grpc.QueryServiceStub(
-            self.__channel
+            channel
         )
 
-    def QuerySubscription(self, subscr_id: int) -> Any:
+    def QuerySubscription(self, subscription_id: int) -> Any:
         try:
             r = self.__stub.QuerySubscription(
                 sentinel_subscription_v2_querier_pb2.QuerySubscriptionRequest(
-                    id=subscr_id
+                    id=subscription_id
                 )
             )
         except grpc._channel._InactiveRpcError as e:
@@ -28,35 +28,21 @@ class SubscriptionQuerier:
         return self.__ConvertAnyToNodeSubscription(r.subscription.value)
 
     def QuerySubscriptions(self) -> list:
-        fetched_subscriptions = []
-        next_key = 0x01
+        subscriptions = self.QueryAll(
+            query=self.__stub.QuerySubscriptions,
+            request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsRequest,
+            attribute="subscriptions",
+        )
+        return [
+            self.__ConvertAnyToNodeSubscription(subscription.value)
+            for subscription in subscriptions
+        ]
 
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySubscriptions(
-                    sentinel_subscription_v2_querier_pb2.QuerySubscriptionsRequest()
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySubscriptions(
-                    sentinel_subscription_v2_querier_pb2.QuerySubscriptionsRequest(
-                        pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.subscriptions:
-                fetched_subscriptions.append(
-                    self.__ConvertAnyToNodeSubscription(s.value)
-                )
-
-        return fetched_subscriptions
-
-    def QueryAllocation(self, address: str, alloc_id: int) -> list:
+    def QueryAllocation(self, address: str, subscription_id: int) -> list:
         try:
             r = self.__stub.QueryAllocation(
                 sentinel_subscription_v2_querier_pb2.QueryAllocationRequest(
-                    address=address, id=alloc_id
+                    address=address, id=subscription_id
                 )
             )
         except grpc._channel._InactiveRpcError as e:
@@ -65,30 +51,13 @@ class SubscriptionQuerier:
 
         return r.allocation
 
-    def QueryAllocations(self, alloc_id: int) -> list:
-        fetched_allocations = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QueryAllocations(
-                    sentinel_subscription_v2_querier_pb2.QueryAllocationsRequest(
-                        id=alloc_id
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QueryAllocations(
-                    sentinel_subscription_v2_querier_pb2.QueryAllocationsRequest(
-                        id=alloc_id, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for a in r.allocations:
-                fetched_allocations.append(a)
-
-        return fetched_allocations
+    def QueryAllocations(self, subscription_id: int) -> list:
+        return self.QueryAll(
+            query=self.__stub.QueryAllocations,
+            request=sentinel_subscription_v2_querier_pb2.QueryAllocationsRequest,
+            attribute="allocations",
+            args={"id": subscription_id},
+        )
 
     def QueryPayout(self, payout_id: int) -> Any:
         try:
@@ -102,158 +71,63 @@ class SubscriptionQuerier:
         return r.payout
 
     def QueryPayouts(self) -> list:
-        fetched_payouts = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QueryPayouts(
-                    sentinel_subscription_v2_querier_pb2.QueryPayoutsRequest()
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QueryPayouts(
-                    sentinel_subscription_v2_querier_pb2.QueryPayoutsRequest(
-                        pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for p in r.payouts:
-                fetched_payouts.append(p)
-
-        return fetched_payouts
+        return self.QueryAll(
+            query=self.__stub.QueryPayouts,
+            request=sentinel_subscription_v2_querier_pb2.QueryPayoutsRequest,
+            attribute="payouts",
+        )
 
     def QueryPayoutsForAccount(self, address: str) -> list:
-        fetched_payouts = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QueryPayoutsForAccount(
-                    sentinel_subscription_v2_querier_pb2.QueryPayoutsForAccountRequest(
-                        address=address
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QueryPayoutsForAccount(
-                    sentinel_subscription_v2_querier_pb2.QueryPayoutsForAccountRequest(
-                        address=address, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for p in r.payouts:
-                fetched_payouts.append(p)
-
-        return fetched_payouts
+        return self.QueryAll(
+            query=self.__stub.QueryPayoutsForAccount,
+            request=sentinel_subscription_v2_querier_pb2.QueryPayoutsForAccountRequest,
+            attribute="payouts",
+            args={"address": address},
+        )
 
     def QueryPayoutsForNode(self, address: str) -> list:
-        fetched_payouts = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QueryPayoutsForNode(
-                    sentinel_subscription_v2_querier_pb2.QueryPayoutsForNodeRequest(
-                        address=address
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QueryPayoutsForNode(
-                    sentinel_subscription_v2_querier_pb2.QueryPayoutsForNodeRequest(
-                        address=address, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for p in r.payouts:
-                fetched_payouts.append(p)
-
-        return fetched_payouts
+        return self.QueryAll(
+            query=self.__stub.QueryPayoutsForNode,
+            request=sentinel_subscription_v2_querier_pb2.QueryPayoutsForNodeRequest,
+            attribute="payouts",
+            args={"address": address},
+        )
 
     def QuerySubscriptionsForAccount(self, address: str) -> list:
-        fetched_subscriptions = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySubscriptionsForAccount(
-                    sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForAccountRequest(
-                        address=address
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySubscriptionsForAccount(
-                    sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForAccountRequest(
-                        address=address, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.subscriptions:
-                fetched_subscriptions.append(
-                    self.__ConvertAnyToPlanSubscription(s.value)
-                )
-
-        return fetched_subscriptions
+        subscriptions = self.QueryAll(
+            query=self.__stub.QuerySubscriptionsForAccount,
+            request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForAccountRequest,
+            attribute="subscriptions",
+            args={"address": address},
+        )
+        return [
+            self.__ConvertAnyToPlanSubscription(subscription.value)
+            for subscription in subscriptions
+        ]
 
     def QuerySubscriptionsForNode(self, address: str) -> list:
-        fetched_subscriptions = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySubscriptionsForNode(
-                    sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForNodeRequest(
-                        address=address
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySubscriptionsForNode(
-                    sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForNodeRequest(
-                        address=address, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.subscriptions:
-                fetched_subscriptions.append(
-                    self.__ConvertAnyToNodeSubscription(s.value)
-                )
-
-        return fetched_subscriptions
+        subscriptions = self.QueryAll(
+            query=self.__stub.QuerySubscriptionsForNode,
+            request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForNodeRequest,
+            attribute="subscriptions",
+            args={"address": address},
+        )
+        return [
+            self.__ConvertAnyToNodeSubscription(subscription.value)
+            for subscription in subscriptions
+        ]
 
     def QuerySubscriptionsForPlan(self, plan_id: int) -> list:
-        fetched_subscriptions = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QuerySubscriptionsForPlan(
-                    sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForPlanRequest(
-                        id=plan_id
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QuerySubscriptionsForPlan(
-                    sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForPlanRequest(
-                        id=plan_id, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for s in r.subscriptions:
-                fetched_subscriptions.append(
-                    self.__ConvertAnyToPlanSubscription(s.value)
-                )
-
-        return fetched_subscriptions
+        subscriptions = self.QueryAll(
+            query=self.__stub.QuerySubscriptionsForPlan,
+            request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForPlanRequest,
+            attribute="subscriptions",
+            args={"id": plan_id},
+        )
+        return [
+            self.__ConvertAnyToPlanSubscription(subscription.value)
+            for subscription in subscriptions
+        ]
 
     # Node subscriptions are returned by grpc querier in google's 'Any' type and need to be converted into desired protobuf type
     #

@@ -4,17 +4,17 @@ import urllib.request
 from typing import Any
 
 import grpc
-import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 import sentinel_protobuf.sentinel.node.v2.node_pb2 as node_pb2
 import sentinel_protobuf.sentinel.node.v2.querier_pb2 as sentinel_node_v2_querier_pb2
 import sentinel_protobuf.sentinel.node.v2.querier_pb2_grpc as sentinel_node_v2_querier_pb2_grpc
 
+from sentinel_sdk.querier.querier import Querier
 
-class NodeQuerier:
+
+class NodeQuerier(Querier):
     def __init__(self, channel: grpc.Channel, status_fetch_timeout: int):
         self.status_fetch_timeout = status_fetch_timeout
-        self.__channel = channel
-        self.__stub = sentinel_node_v2_querier_pb2_grpc.QueryServiceStub(self.__channel)
+        self.__stub = sentinel_node_v2_querier_pb2_grpc.QueryServiceStub(channel)
 
         # Disable SSL verification
         self.__ssl_ctx = ssl.create_default_context()
@@ -30,27 +30,12 @@ class NodeQuerier:
         return r.node
 
     def QueryNodes(self, status: int) -> list:
-        fetched_nodes = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QueryNodes(
-                    sentinel_node_v2_querier_pb2.QueryNodesRequest(status=status.value)
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QueryNodes(
-                    sentinel_node_v2_querier_pb2.QueryNodesRequest(
-                        status=status.value, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for n in r.nodes:
-                fetched_nodes.append(n)
-
-        return fetched_nodes
+        return self.QueryAll(
+            query=self.__stub.QueryNodes,
+            request=sentinel_node_v2_querier_pb2.QueryNodesRequest,
+            attribute="nodes",
+            args={"status": status.value},
+        )
 
     def QueryNumOfNodesWithStatus(self, status: int) -> int:
         r = self.__stub.QueryNodes(
@@ -93,29 +78,12 @@ class NodeQuerier:
         return result
 
     def QueryNodesForPlan(self, plan_id: int, status: int) -> list:
-        fetched_nodes = []
-        next_key = 0x01
-
-        while next_key:
-            if next_key == 0x01:
-                r = self.__stub.QueryNodesForPlan(
-                    sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest(
-                        id=plan_id, status=status.value
-                    )
-                )
-            else:
-                next_page_req = cosmos_pagination_pb2.PageRequest(key=next_key)
-                r = self.__stub.QueryNodesForPlan(
-                    sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest(
-                        id=plan_id, status=status.value, pagination=next_page_req
-                    )
-                )
-
-            next_key = r.pagination.next_key
-            for n in r.nodes:
-                fetched_nodes.append(n)
-
-        return fetched_nodes
+        return self.QueryAll(
+            query=self.__stub.QueryNodesForPlan,
+            request=sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest,
+            attribute="nodes",
+            args={"status": status.value, "id": plan_id},
+        )
 
     def __QueryNodesChunk(self, chunk: list[node_pb2.Node]):
         for node in chunk:
