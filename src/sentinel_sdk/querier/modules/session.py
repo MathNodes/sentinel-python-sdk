@@ -12,10 +12,10 @@ class SessionQuerier(Querier):
     def __init__(self, channel: grpc.Channel):
         self.__stub = sentinel_session_v2_querier_pb2_grpc.QueryServiceStub(channel)
 
-    def QuerySession(self, sess_id: int) -> Any:
+    def QuerySession(self, session_id: int) -> Any:
         try:
             r = self.__stub.QuerySession(
-                sentinel_session_v2_querier_pb2.QuerySessionRequest(id=sess_id)
+                sentinel_session_v2_querier_pb2.QuerySessionRequest(id=session_id)
             )
         except grpc._channel._InactiveRpcError as e:
             print(e)
@@ -38,18 +38,19 @@ class SessionQuerier(Querier):
             query=self.__stub.QuerySessionsForAccount,
             request=sentinel_session_v2_querier_pb2.QuerySessionsForAccountRequest,
             attribute="sessions",
-            args={"address": address},
+            address=address,
             pagination=pagination,
         )
 
     def QuerySessionsForAllocation(
-        self, address: str, allocation_id: int, pagination: PageRequest = None
+        self, allocation_id: int, address: str, pagination: PageRequest = None
     ) -> list:
         return self.QueryAll(
             query=self.__stub.QuerySessionsForAllocation,
             request=sentinel_session_v2_querier_pb2.QuerySessionsForAllocationRequest,
             attribute="sessions",
-            args={"address": address, "id": allocation_id},
+            id=allocation_id,
+            address=address,
             pagination=pagination,
         )
 
@@ -60,7 +61,7 @@ class SessionQuerier(Querier):
             query=self.__stub.QuerySessionsForNode,
             request=sentinel_session_v2_querier_pb2.QuerySessionsForNodeRequest,
             attribute="sessions",
-            args={"address": address},
+            address=address,
             pagination=pagination,
         )
 
@@ -71,6 +72,6 @@ class SessionQuerier(Querier):
             query=self.__stub.QuerySessionsForSubscription,
             request=sentinel_session_v2_querier_pb2.QuerySessionsForSubscriptionRequest,
             attribute="sessions",
-            args={"id": subscription_id},
+            id=subscription_id,
             pagination=pagination,
         )

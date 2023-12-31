@@ -28,6 +28,6 @@ class ProviderQuerier(Querier):
             query=self.__stub.QueryProviders,
             request=sentinel_provider_v2_querier_pb2.QueryProvidersRequest,
             attribute="providers",
-            args={"status": status.value},
+            status=status.value,
             pagination=pagination,
         )

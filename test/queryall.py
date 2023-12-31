@@ -5,9 +5,6 @@ from sentinel_sdk.types import PageRequest, Status
 
 # GRPC_VERBOSITY=debug GRPC_TRACE=tcp,http python test/queryall.py
 
-# [Warning] Sometimes we get an empty data, init sdk and SDKInstance before each query
-# Probably is goes in timeout or something like that
-
 sdk = SDKInstance("grpc.sentinel.co", 9090)
 
 nodes = sdk.multiquerier.node_querier.QueryNodes(
@@ -58,15 +55,27 @@ subscription_chain = sdk.multiquerier.subscription_querier.QuerySubscription(
 assert subscription_chain == subscription_random
 print(f"Random subscription: {subscription_chain}")
 
-"""
-# TODO: need investigation ...
-allocations = sdk.multiquerier.subscription_querier.QueryAllocations(subscription_random.base.id)
-print(f"{len(allocations)} allocations")
+# Not all subscriptions have an allocations, going to search randomly
+allocations = []
+while allocations == []:
+    allocations = sdk.multiquerier.subscription_querier.QueryAllocations(
+        random.choice(subscriptions).base.id
+    )
+    print(f"{len(allocations)} allocations")
+
 allocation_random = random.choice(allocations)
-allocation_chain = sdk.multiquerier.subscription_querier.QueryAllocation(allocation_random.address, allocation_random.id)
+allocation_chain = sdk.multiquerier.subscription_querier.QueryAllocation(
+    allocation_random.address, allocation_random.id
+)
 assert allocation_chain == allocation_random
 print(f"Random allocation: {allocation_chain}")
-"""
+
+sessions = sdk.multiquerier.session_querier.QuerySessions()
+print(f"{len(sessions)} sessions")
+session_random = random.choice(sessions)
+session_chain = sdk.multiquerier.session_querier.QuerySession(session_random.id)
+assert session_chain == session_random
+print(f"Random session: {session_chain}")
 
 payouts = sdk.multiquerier.subscription_querier.QueryPayouts()
 print(f"{len(payouts)} payouts")
@@ -94,17 +103,48 @@ subscriptions = sdk.multiquerier.subscription_querier.QuerySubscriptionsForAccou
     subscription_random.base.address
 )
 print(
-    f"{len(payouts)} subscriptions, QuerySubscriptionsForAccount({subscription_random.base.address})"
+    f"{len(subscriptions)} subscriptions, QuerySubscriptionsForAccount({subscription_random.base.address})"
 )
 
 subscriptions = sdk.multiquerier.subscription_querier.QuerySubscriptionsForNode(
     subscription_random.node_address
 )
 print(
-    f"{len(payouts)} subscriptions, QuerySubscriptionsForNode({subscription_random.node_address})"
+    f"{len(subscriptions)} subscriptions, QuerySubscriptionsForNode({subscription_random.node_address})"
 )
 
 subscriptions = sdk.multiquerier.subscription_querier.QuerySubscriptionsForPlan(
     plan_random.id
 )
-print(f"{len(payouts)} subscriptions, QuerySubscriptionsForPlan({plan_random.id})")
+print(
+    f"{len(subscriptions)} subscriptions, QuerySubscriptionsForPlan({plan_random.id})"
+)
+
+
+sessions = sdk.multiquerier.session_querier.QuerySessionsForAccount(
+    subscription_random.base.address
+)
+print(
+    f"{len(sessions)} sessions, QuerySessionsForAccount({subscription_random.base.address})"
+)
+
+sessions = sdk.multiquerier.session_querier.QuerySessionsForAllocation(
+    allocation_random.id, allocation_random.address
+)
+print(
+    f"{len(sessions)} sessions, QuerySessionsForAllocation({allocation_random.id}, {allocation_random.address})"
+)
+
+sessions = sdk.multiquerier.session_querier.QuerySessionsForNode(
+    subscription_random.node_address
+)
+print(
+    f"{len(sessions)} sessions, QuerySessionsForNode({subscription_random.node_address})"
+)
+
+sessions = sdk.multiquerier.session_querier.QuerySessionsForSubscription(
+    subscription_random.base.id
+)
+print(
+    f"{len(sessions)} sessions, QuerySessionsForSubscription({subscription_random.base.id})"
+)

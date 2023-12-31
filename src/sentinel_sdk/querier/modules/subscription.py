@@ -60,7 +60,7 @@ class SubscriptionQuerier(Querier):
             query=self.__stub.QueryAllocations,
             request=sentinel_subscription_v2_querier_pb2.QueryAllocationsRequest,
             attribute="allocations",
-            args={"id": subscription_id},
+            id=subscription_id,
             pagination=pagination,
         )
 
@@ -90,7 +90,7 @@ class SubscriptionQuerier(Querier):
             query=self.__stub.QueryPayoutsForAccount,
             request=sentinel_subscription_v2_querier_pb2.QueryPayoutsForAccountRequest,
             attribute="payouts",
-            args={"address": address},
+            address=address,
             pagination=pagination,
         )
 
@@ -99,7 +99,7 @@ class SubscriptionQuerier(Querier):
             query=self.__stub.QueryPayoutsForNode,
             request=sentinel_subscription_v2_querier_pb2.QueryPayoutsForNodeRequest,
             attribute="payouts",
-            args={"address": address},
+            address=address,
             pagination=pagination,
         )
 
@@ -110,7 +110,7 @@ class SubscriptionQuerier(Querier):
             query=self.__stub.QuerySubscriptionsForAccount,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForAccountRequest,
             attribute="subscriptions",
-            args={"address": address},
+            address=address,
             pagination=pagination,
         )
         return [
@@ -125,7 +125,7 @@ class SubscriptionQuerier(Querier):
             query=self.__stub.QuerySubscriptionsForNode,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForNodeRequest,
             attribute="subscriptions",
-            args={"address": address},
+            address=address,
             pagination=pagination,
         )
         return [
@@ -140,7 +140,7 @@ class SubscriptionQuerier(Querier):
             query=self.__stub.QuerySubscriptionsForPlan,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForPlanRequest,
             attribute="subscriptions",
-            args={"id": plan_id},
+            id=plan_id,
             pagination=pagination,
         )
         return [

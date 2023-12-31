@@ -30,7 +30,8 @@ class PlanQuerier(Querier):
             query=self.__stub.QueryPlansForProvider,
             request=sentinel_plan_v2_querier_pb2.QueryPlansForProviderRequest,
             attribute="plans",
-            args={"address": address, "status": status.value},
+            address=address,
+            status=status.value,
             pagination=pagination,
         )
 
@@ -39,6 +40,6 @@ class PlanQuerier(Querier):
             query=self.__stub.QueryPlans,
             request=sentinel_plan_v2_querier_pb2.QueryPlansRequest,
             attribute="plans",
-            args={"status": status.value},
+            status=status.value,
             pagination=pagination,
         )

@@ -35,7 +35,7 @@ class NodeQuerier(Querier):
             query=self.__stub.QueryNodes,
             request=sentinel_node_v2_querier_pb2.QueryNodesRequest,
             attribute="nodes",
-            args={"status": status.value},
+            status=status.value,
             pagination=pagination,
         )
 
@@ -86,7 +86,8 @@ class NodeQuerier(Querier):
             query=self.__stub.QueryNodesForPlan,
             request=sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest,
             attribute="nodes",
-            args={"status": status.value, "id": plan_id},
+            status=status.value,
+            id=plan_id,
             pagination=pagination,
         )
 

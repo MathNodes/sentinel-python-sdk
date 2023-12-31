@@ -1,4 +1,3 @@
-import copy
 from typing import Any
 
 from sentinel_sdk.types import PageRequest
@@ -10,10 +9,14 @@ class Querier:
         query: Any,
         request: Any,
         attribute: str,
-        args: dict = {},
         pagination: PageRequest = None,
+        **kwargs,
     ) -> list:
-        request_arguments = copy.copy(args)
+        # ["status", "address", "id"] are the only valid kwargs
+        request_arguments = {
+            k: kwargs[k] for k in kwargs if k in ["status", "address", "id"]
+        }
+
         if pagination is None:
             # Create an empty page request, will be used for pagination with next_key
             # On first iteration with next_key = 0x01, the pagination will have only limit value
