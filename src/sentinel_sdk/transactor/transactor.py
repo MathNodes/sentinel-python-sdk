@@ -1,5 +1,14 @@
+import base64
+import hashlib
+import json
 import os
+import ssl
+import time
+import urllib.parse
+import urllib.request
+from typing import Any
 
+import ecdsa
 import grpc
 import sentinel_protobuf.cosmos.auth.v1beta1.auth_pb2 as cosmos_auth_v1beta1_auth_pb2
 import sentinel_protobuf.cosmos.auth.v1beta1.query_pb2 as cosmos_auth_v1beta1_query_pb2
@@ -7,8 +16,10 @@ from bip_utils import Bech32Encoder, Bip39SeedGenerator, Bip44, Bip44Coins
 from Crypto.Hash import RIPEMD160, SHA256
 from mospy import Account, Transaction
 from mospy.clients import GRPCClient
+from python_wireguard import Key
 from sentinel_protobuf.cosmos.base.v1beta1.coin_pb2 import Coin
 from sentinel_protobuf.sentinel.node.v2.msg_pb2 import MsgSubscribeRequest
+from sentinel_protobuf.sentinel.session.v2.msg_pb2 import MsgStartRequest
 
 
 class SentinelTransactor:
@@ -17,20 +28,23 @@ class SentinelTransactor:
         grpcaddr: str,
         grpcport: int,
         query_channel: grpc.Channel,
-        ssl: bool = False,
+        use_ssl: bool = False,
     ):
         self._query_channel = query_channel
         self.seed_path = os.path.join(os.getcwd(), "test.seed")
         if os.path.isfile(self.seed_path) is True:
-            with open(self.seed_path, "r") as f:
+            with open(self.seed_path, "r", encoding="utf-8") as f:
                 mnemonic = f.read()
-            self.__setup_account_and_client(mnemonic, grpcaddr, grpcport)
+            self.__setup_account_and_client(mnemonic, grpcaddr, grpcport, use_ssl)
         else:
             print(f"{self.seed_path} file not found")
 
     def __setup_account_and_client(
-        self, mnemonic: str, grpcaddr: str, grpcport: int, ssl: bool = False
+        self, mnemonic: str, grpcaddr: str, grpcport: int, use_ssl: bool = False
     ):
+        # From mnemonic to pvt key using Bip, we could use directly Account(seed_phrase=)
+        # But we would calculate the account_number dinamcally :)
+
         seed_bytes = Bip39SeedGenerator(mnemonic).Generate()
         bip44_def_ctx = Bip44.FromSeed(
             seed_bytes, Bip44Coins.COSMOS
@@ -49,7 +63,7 @@ class SentinelTransactor:
             protobuf="sentinel",
         )
         self.__client = GRPCClient(
-            host=grpcaddr, port=grpcport, ssl=ssl, protobuf="sentinel"
+            host=grpcaddr, port=grpcport, ssl=use_ssl, protobuf="sentinel"
         )
         self.__client.load_account_data(account=self.__account)
 
@@ -64,23 +78,121 @@ class SentinelTransactor:
         baseacc.ParseFromString(r.account.value)
         return baseacc.account_number
 
-    def SubscribeToGB(self, sentnode: str, gb: int):
-        fee = Coin(denom="udvpn", amount="20000")
+    # TODO: subscribe_to_gigabytes, subscribe_to_hours, start_request and all method should have fee denom and amount as args?
+    # We need to find a good way to this. The method could return only the MsgRequest and type_url
+    # Who wants to submit the tx, can call transaction (we should also implement multi-add_raw_msg), one tx with multiple msg
+
+    def subscribe_to_gigabytes(self, node_address: str, gigabytes: int):
+        msg = MsgSubscribeRequest(
+            frm=self.__account.address,
+            node_address=node_address,
+            gigabytes=gigabytes,
+            hours=0,
+            denom="udvpn",
+        )
+        return self.transaction(msg, type_url="/sentinel.node.v2.MsgSubscribeRequest")
+
+    def subscribe_to_hours(self, node_address: str, hours: int):
+        msg = MsgSubscribeRequest(
+            frm=self.__account.address,
+            node_address=node_address,
+            gigabytes=0,
+            hours=hours,
+            denom="udvpn",
+        )
+        return self.transaction(msg, type_url="/sentinel.node.v2.MsgSubscribeRequest")
+
+    def start_request(self, subscription_id: int, node_address: str):
+        msg = MsgStartRequest(
+            frm=self.__account.address, id=int(subscription_id), address=node_address
+        )
+        return self.transaction(msg, type_url="/sentinel.session.v2.MsgStartRequest")
+
+    def transaction(
+        self,
+        message: Any,
+        type_url: str,
+        fee_denom: str = "udvpn",
+        fee_amount: int = 20000,
+        gas_multiplier: float = 1.5,
+    ) -> dict:
         tx = Transaction(
             account=self.__account,
-            fee=fee,
+            fee=Coin(denom=fee_denom, amount=f"{fee_amount}"),
             gas=0,
             protobuf="sentinel",
             chain_id="sentinelhub-2",
         )
-        msg = MsgSubscribeRequest(
-            frm=self.__account.address,
-            node_address=sentnode,
-            gigabytes=gb,
-            hours=0,
-            denom="udvpn",
+        tx.add_raw_msg(message, type_url=type_url)
+        # inplace, auto-update gas with update=True
+        self.__client.estimate_gas(
+            transaction=tx, update=True, multiplier=gas_multiplier
         )
-        tx.add_raw_msg(msg, type_url="/sentinel.node.v2.MsgSubscribeRequest")
-        self.__client.estimate_gas(transaction=tx, update=True, multiplier=1.5)
         tx_response = self.__client.broadcast_transaction(transaction=tx)
+        # tx_response = {"hash": hash, "code": code, "log": log}
         return tx_response
+
+    def wait_transaction(
+        self, tx_hash: str, timeout: float = 60, pool_period: float = 60
+    ):
+        start = time.time()
+        while 1:
+            try:
+                return self.__client.get_tx(tx_hash)
+            except grpc.RpcError as rpc_error:
+                # https://github.com/grpc/grpc/tree/master/examples/python/errors
+                # Instance of 'RpcError' has no 'code' member, work on runtime
+                if (
+                    rpc_error.code() == grpc.StatusCode.NOT_FOUND
+                ):  # pylint: disable=no-member
+                    if time.time() - start > timeout:
+                        return None
+                    time.sleep(pool_period)
+
+    # This can be also move, but can stay here because we access to self.__account.address
+    def post_session(self, session_id: int, remote_url: str):
+        private, public = Key.key_pair()
+
+        sk = ecdsa.SigningKey.from_string(
+            self.__account.private_key, curve=ecdsa.SECP256k1, hashfunc=hashlib.sha256
+        )
+
+        session_id = int(session_id)
+        # Uint64ToBigEndian
+        bige_session = session_id.to_bytes(8, "big")
+        signature = sk.sign(bige_session)
+
+        payload = {
+            "key": f"{public}",
+            "signature": base64.b64encode(signature).decode("utf-8"),
+        }
+        # Get invalid signature, dammit
+        return private, SentinelTransactor.post_session_node(
+            f"{remote_url}/accounts/{self.__account.address}/sessions/{session_id}",
+            payload,
+        )
+
+    # TODO: the following method was implement but should me moved out of "transactor"
+    @staticmethod
+    def search_attribute(tx_response: Any, event_type: str, attribute_key: str) -> Any:
+        for event in (tx_response.tx_response or tx_response).events:
+            if event.type == event_type:
+                for attribute in event.attributes:
+                    if attribute.key == attribute_key.encode():
+                        return json.loads(attribute.value)
+        return None
+
+    # TODO: same as search_attribute, maybe we can do a utils file
+    @staticmethod
+    def post_session_node(url: str, payload: dict) -> dict:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        request = urllib.request.Request(url)
+        request.add_header("Content-Type", "application/json; charset=utf-8")
+        json_data_bytes = json.dumps(payload).encode("utf-8")  # needs to be bytes
+        request.add_header("Content-Length", len(json_data_bytes))
+        with urllib.request.urlopen(
+            request, json_data_bytes, timeout=(60 * 60), context=ctx
+        ) as f:
+            return json.loads(f.read().decode("utf-8"))
