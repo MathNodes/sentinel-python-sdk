@@ -1,7 +1,7 @@
 import random
 
 from sentinel_sdk.sdk import SDKInstance
-from sentinel_sdk.types import Status
+from sentinel_sdk.types import PageRequest, Status
 
 # GRPC_VERBOSITY=debug GRPC_TRACE=tcp,http python test/queryall.py
 
@@ -10,7 +10,9 @@ from sentinel_sdk.types import Status
 
 sdk = SDKInstance("grpc.sentinel.co", 9090)
 
-nodes = sdk.multiquerier.node_querier.QueryNodes(Status.ACTIVE)
+nodes = sdk.multiquerier.node_querier.QueryNodes(
+    Status.ACTIVE, pagination=PageRequest(limit=500)
+)
 print(f"{len(nodes)} nodes")
 node_random = random.choice(nodes)
 node_chain = sdk.multiquerier.node_querier.QueryNode(node_random.address)
@@ -45,7 +47,9 @@ provider_chain = sdk.multiquerier.provider_querier.QueryProvider(
 assert provider_chain == provider_random
 print(f"Random provider: {provider_chain}")
 
-subscriptions = sdk.multiquerier.subscription_querier.QuerySubscriptions()
+subscriptions = sdk.multiquerier.subscription_querier.QuerySubscriptions(
+    pagination=PageRequest(limit=1500)
+)
 print(f"{len(subscriptions)} subscriptions")
 subscription_random = random.choice(subscriptions)
 subscription_chain = sdk.multiquerier.subscription_querier.QuerySubscription(

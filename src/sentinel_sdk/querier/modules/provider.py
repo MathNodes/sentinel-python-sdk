@@ -5,6 +5,7 @@ import sentinel_protobuf.sentinel.provider.v2.querier_pb2 as sentinel_provider_v
 import sentinel_protobuf.sentinel.provider.v2.querier_pb2_grpc as sentinel_provider_v2_querier_pb2_grpc
 
 from sentinel_sdk.querier.querier import Querier
+from sentinel_sdk.types import PageRequest
 
 
 class ProviderQuerier(Querier):
@@ -22,10 +23,11 @@ class ProviderQuerier(Querier):
 
         return r.provider
 
-    def QueryProviders(self, status: int) -> list:
+    def QueryProviders(self, status: int, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QueryProviders,
             request=sentinel_provider_v2_querier_pb2.QueryProvidersRequest,
             attribute="providers",
             args={"status": status.value},
+            pagination=pagination,
         )

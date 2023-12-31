@@ -5,6 +5,7 @@ import sentinel_protobuf.sentinel.swap.v1.querier_pb2 as sentinel_swap_v1_querie
 import sentinel_protobuf.sentinel.swap.v1.querier_pb2_grpc as sentinel_swap_v1_querier_pb2_grpc
 
 from sentinel_sdk.querier.querier import Querier
+from sentinel_sdk.types import PageRequest
 
 # import sentinel_protobuf.sentinel.swap.v1.swap_pb2 as swap_pb2
 
@@ -24,9 +25,10 @@ class SwapQuerier(Querier):
 
         return r.swap
 
-    def QuerySwaps(self) -> list:
+    def QuerySwaps(self, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QuerySwaps,
             request=sentinel_swap_v1_querier_pb2.QuerySwapsRequest,
             attribute="swaps",
+            pagination=pagination,
         )

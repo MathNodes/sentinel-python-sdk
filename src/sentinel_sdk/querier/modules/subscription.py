@@ -6,6 +6,7 @@ import sentinel_protobuf.sentinel.subscription.v2.querier_pb2_grpc as sentinel_s
 import sentinel_protobuf.sentinel.subscription.v2.subscription_pb2 as subscription_pb2
 
 from sentinel_sdk.querier.querier import Querier
+from sentinel_sdk.types import PageRequest
 
 
 class SubscriptionQuerier(Querier):
@@ -27,11 +28,12 @@ class SubscriptionQuerier(Querier):
 
         return self.__ConvertAnyToNodeSubscription(r.subscription.value)
 
-    def QuerySubscriptions(self) -> list:
+    def QuerySubscriptions(self, pagination: PageRequest = None) -> list:
         subscriptions = self.QueryAll(
             query=self.__stub.QuerySubscriptions,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsRequest,
             attribute="subscriptions",
+            pagination=pagination,
         )
         return [
             self.__ConvertAnyToNodeSubscription(subscription.value)
@@ -51,12 +53,15 @@ class SubscriptionQuerier(Querier):
 
         return r.allocation
 
-    def QueryAllocations(self, subscription_id: int) -> list:
+    def QueryAllocations(
+        self, subscription_id: int, pagination: PageRequest = None
+    ) -> list:
         return self.QueryAll(
             query=self.__stub.QueryAllocations,
             request=sentinel_subscription_v2_querier_pb2.QueryAllocationsRequest,
             attribute="allocations",
             args={"id": subscription_id},
+            pagination=pagination,
         )
 
     def QueryPayout(self, payout_id: int) -> Any:
@@ -70,59 +75,73 @@ class SubscriptionQuerier(Querier):
 
         return r.payout
 
-    def QueryPayouts(self) -> list:
+    def QueryPayouts(self, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QueryPayouts,
             request=sentinel_subscription_v2_querier_pb2.QueryPayoutsRequest,
             attribute="payouts",
+            pagination=pagination,
         )
 
-    def QueryPayoutsForAccount(self, address: str) -> list:
+    def QueryPayoutsForAccount(
+        self, address: str, pagination: PageRequest = None
+    ) -> list:
         return self.QueryAll(
             query=self.__stub.QueryPayoutsForAccount,
             request=sentinel_subscription_v2_querier_pb2.QueryPayoutsForAccountRequest,
             attribute="payouts",
             args={"address": address},
+            pagination=pagination,
         )
 
-    def QueryPayoutsForNode(self, address: str) -> list:
+    def QueryPayoutsForNode(self, address: str, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QueryPayoutsForNode,
             request=sentinel_subscription_v2_querier_pb2.QueryPayoutsForNodeRequest,
             attribute="payouts",
             args={"address": address},
+            pagination=pagination,
         )
 
-    def QuerySubscriptionsForAccount(self, address: str) -> list:
+    def QuerySubscriptionsForAccount(
+        self, address: str, pagination: PageRequest = None
+    ) -> list:
         subscriptions = self.QueryAll(
             query=self.__stub.QuerySubscriptionsForAccount,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForAccountRequest,
             attribute="subscriptions",
             args={"address": address},
+            pagination=pagination,
         )
         return [
             self.__ConvertAnyToPlanSubscription(subscription.value)
             for subscription in subscriptions
         ]
 
-    def QuerySubscriptionsForNode(self, address: str) -> list:
+    def QuerySubscriptionsForNode(
+        self, address: str, pagination: PageRequest = None
+    ) -> list:
         subscriptions = self.QueryAll(
             query=self.__stub.QuerySubscriptionsForNode,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForNodeRequest,
             attribute="subscriptions",
             args={"address": address},
+            pagination=pagination,
         )
         return [
             self.__ConvertAnyToNodeSubscription(subscription.value)
             for subscription in subscriptions
         ]
 
-    def QuerySubscriptionsForPlan(self, plan_id: int) -> list:
+    def QuerySubscriptionsForPlan(
+        self, plan_id: int, pagination: PageRequest = None
+    ) -> list:
         subscriptions = self.QueryAll(
             query=self.__stub.QuerySubscriptionsForPlan,
             request=sentinel_subscription_v2_querier_pb2.QuerySubscriptionsForPlanRequest,
             attribute="subscriptions",
             args={"id": plan_id},
+            pagination=pagination,
         )
         return [
             self.__ConvertAnyToPlanSubscription(subscription.value)

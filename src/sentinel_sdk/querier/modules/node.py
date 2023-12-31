@@ -9,6 +9,7 @@ import sentinel_protobuf.sentinel.node.v2.querier_pb2 as sentinel_node_v2_querie
 import sentinel_protobuf.sentinel.node.v2.querier_pb2_grpc as sentinel_node_v2_querier_pb2_grpc
 
 from sentinel_sdk.querier.querier import Querier
+from sentinel_sdk.types import PageRequest
 
 
 class NodeQuerier(Querier):
@@ -29,12 +30,13 @@ class NodeQuerier(Querier):
         )
         return r.node
 
-    def QueryNodes(self, status: int) -> list:
+    def QueryNodes(self, status: int, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QueryNodes,
             request=sentinel_node_v2_querier_pb2.QueryNodesRequest,
             attribute="nodes",
             args={"status": status.value},
+            pagination=pagination,
         )
 
     def QueryNumOfNodesWithStatus(self, status: int) -> int:
@@ -77,12 +79,15 @@ class NodeQuerier(Querier):
 
         return result
 
-    def QueryNodesForPlan(self, plan_id: int, status: int) -> list:
+    def QueryNodesForPlan(
+        self, plan_id: int, status: int, pagination: PageRequest = None
+    ) -> list:
         return self.QueryAll(
             query=self.__stub.QueryNodesForPlan,
             request=sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest,
             attribute="nodes",
             args={"status": status.value, "id": plan_id},
+            pagination=pagination,
         )
 
     def __QueryNodesChunk(self, chunk: list[node_pb2.Node]):

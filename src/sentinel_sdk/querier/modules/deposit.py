@@ -5,6 +5,7 @@ import sentinel_protobuf.sentinel.deposit.v1.querier_pb2 as sentinel_deposit_v1_
 import sentinel_protobuf.sentinel.deposit.v1.querier_pb2_grpc as sentinel_deposit_v1_querier_pb2_grpc
 
 from sentinel_sdk.querier.querier import Querier
+from sentinel_sdk.types import PageRequest
 
 
 class DepositQuerier(Querier):
@@ -22,9 +23,10 @@ class DepositQuerier(Querier):
 
         return r.deposit
 
-    def QueryDeposits(self) -> list:
+    def QueryDeposits(self, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QueryDeposits,
             request=sentinel_deposit_v1_querier_pb2.QueryDepositsRequest,
             attribute="deposits",
+            pagination=pagination,
         )

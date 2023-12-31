@@ -22,7 +22,8 @@ https://pre-commit.com/index.html
 ### Usage example:
 ```python
 from sentinel_sdk.sdk import SDKInstance
-from sentinel_sdk.types import Status
-my_sdk = SDKInstance("grpc.sentinel.co", 9090)
-my_sdk.multiquerier.node_querier.QueryNodes(Status.ACTIVE)
+from sentinel_sdk.types import Status, PageRequest
+sdk = SDKInstance("grpc.sentinel.co", 9090)
+nodes = sdk.multiquerier.node_querier.QueryNodes(Status.ACTIVE)
+subscriptions = sdk.multiquerier.subscription_querier.QuerySubscriptions(pagination=PageRequest(limit=5000, offset=0, reverse=True))
 ```
