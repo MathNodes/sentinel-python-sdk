@@ -47,15 +47,17 @@ class SentinelTransactor:
     ):
         # From mnemonic to pvt key using Bip, we could use directly Account(seed_phrase=)
         # But we would calculate the account_number dinamcally :)
-        # Hackish way to discern between mnemonic and hex private key
-
-        if(len(secret.split(" ")) > 1):
+        
+        try:
+            Bip39MnemonicValidator().Validate(secret)
             seed_bytes = Bip39SeedGenerator(secret).Generate()
-            bip44_def_ctx = Bip44.FromSeed(
-                seed_bytes, Bip44Coins.COSMOS
-                ).DeriveDefaultPath()
-        else:
-            bip44_def_ctx = Bip44.FromPrivateKey(bytes.fromhex(secret), Bip44Coins.COSMOS)
+            bip44_def_ctx = Bip44.FromSeed(seed_bytes, Bip44Coins.COSMOS).DeriveDefaultPath()
+        except:
+            try:
+                int(secret, 16)
+                bip44_def_ctx = Bip44.FromPrivateKey(bytes.fromhex(secret), Bip44Coins.COSMOS)
+            except:
+                raise ValueError("Unrecognized secret either as a mnemonic or hex private key")
             
         sha_key = SHA256.new()
         ripemd_key = RIPEMD160.new()
