@@ -49,13 +49,13 @@ class SentinelTransactor:
         # But we would calculate the account_number dinamcally :)
         # Hackish way to discern between mnemonic and hex private key
 
-        if(len(secret.split(" ")) > 0):
+        if(len(secret.split(" ")) > 1):
             seed_bytes = Bip39SeedGenerator(secret).Generate()
             bip44_def_ctx = Bip44.FromSeed(
                 seed_bytes, Bip44Coins.COSMOS
                 ).DeriveDefaultPath()
         else:
-            bip44_def_ctx = Bip44.FromPrivKey(bytes.fromhex(secret), Bip44Coins.COSMOS)
+            bip44_def_ctx = Bip44.FromPrivateKey(bytes.fromhex(secret), Bip44Coins.COSMOS)
             
         sha_key = SHA256.new()
         ripemd_key = RIPEMD160.new()
