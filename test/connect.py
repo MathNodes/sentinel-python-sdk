@@ -231,7 +231,7 @@ bige_session = session_id.to_bytes(8, "big")
 signature = sk.sign(bige_session)
 
 payload = {"key": f"{public}", "signature": base64.b64encode(signature).decode("utf-8")}
-# Get invalid signature, dammit
+
 response = post_session_node(
     f"{remote_url}/accounts/{account.address}/sessions/{session_id}", payload
 )

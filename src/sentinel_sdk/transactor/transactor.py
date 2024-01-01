@@ -6,6 +6,7 @@ import ssl
 import time
 import urllib.parse
 import urllib.request
+import uuid
 from typing import Any
 
 import ecdsa
@@ -19,7 +20,9 @@ from mospy.clients import GRPCClient
 from python_wireguard import Key
 from sentinel_protobuf.cosmos.base.v1beta1.coin_pb2 import Coin
 from sentinel_protobuf.sentinel.node.v2.msg_pb2 import MsgSubscribeRequest
-from sentinel_protobuf.sentinel.session.v2.msg_pb2 import MsgStartRequest
+from sentinel_protobuf.sentinel.session.v2.msg_pb2 import MsgEndRequest, MsgStartRequest
+
+from sentinel_sdk.types import NodeType
 
 
 class SentinelTransactor:
@@ -79,7 +82,7 @@ class SentinelTransactor:
         return baseacc.account_number
 
     # TODO: subscribe_to_gigabytes, subscribe_to_hours, start_request and all method should have fee denom and amount as args?
-    # We need to find a good way to this. The method could return only the MsgRequest and type_url
+    # We need to find a good way to this. **The method could return only the MsgRequest and type_url**
     # Who wants to submit the tx, can call transaction (we should also implement multi-add_raw_msg), one tx with multiple msg
 
     def subscribe_to_gigabytes(self, node_address: str, gigabytes: int):
@@ -90,7 +93,7 @@ class SentinelTransactor:
             hours=0,
             denom="udvpn",
         )
-        return self.transaction(msg, type_url="/sentinel.node.v2.MsgSubscribeRequest")
+        return self.transaction([msg])
 
     def subscribe_to_hours(self, node_address: str, hours: int):
         msg = MsgSubscribeRequest(
@@ -100,34 +103,49 @@ class SentinelTransactor:
             hours=hours,
             denom="udvpn",
         )
-        return self.transaction(msg, type_url="/sentinel.node.v2.MsgSubscribeRequest")
+        return self.transaction([msg])
 
     def start_request(self, subscription_id: int, node_address: str):
         msg = MsgStartRequest(
             frm=self.__account.address, id=int(subscription_id), address=node_address
         )
-        return self.transaction(msg, type_url="/sentinel.session.v2.MsgStartRequest")
+        return self.transaction([msg])
+
+    def end_request(self, session_id: int, rating: int = 0):
+        msg = MsgEndRequest(
+            frm=self.__account.address, id=int(session_id), rating=rating
+        )
+        return self.transaction([msg])
 
     def transaction(
         self,
-        message: Any,
-        type_url: str,
+        messages: list,
         fee_denom: str = "udvpn",
         fee_amount: int = 20000,
+        gas: float = 0,
         gas_multiplier: float = 1.5,
     ) -> dict:
         tx = Transaction(
             account=self.__account,
             fee=Coin(denom=fee_denom, amount=f"{fee_amount}"),
-            gas=0,
+            gas=gas,
             protobuf="sentinel",
             chain_id="sentinelhub-2",
         )
-        tx.add_raw_msg(message, type_url=type_url)
+
+        if not isinstance(messages, list):
+            messages = [messages]
+
+        for message in messages:
+            tx.add_raw_msg(message, type_url=f"/{message.DESCRIPTOR.full_name}")
+
         # inplace, auto-update gas with update=True
-        self.__client.estimate_gas(
-            transaction=tx, update=True, multiplier=gas_multiplier
-        )
+        # auto calculate the gas only if was not already passed as args:
+        if gas == 0:
+            self.__client.estimate_gas(
+                transaction=tx, update=True, multiplier=gas_multiplier
+            )
+
         tx_response = self.__client.broadcast_transaction(transaction=tx)
         # tx_response = {"hash": hash, "code": code, "log": log}
         return tx_response
@@ -142,16 +160,28 @@ class SentinelTransactor:
             except grpc.RpcError as rpc_error:
                 # https://github.com/grpc/grpc/tree/master/examples/python/errors
                 # Instance of 'RpcError' has no 'code' member, work on runtime
-                if (
-                    rpc_error.code() == grpc.StatusCode.NOT_FOUND
-                ):  # pylint: disable=no-member
+                status_code = rpc_error.code()  # pylint: disable=no-member
+                if status_code == grpc.StatusCode.NOT_FOUND:
                     if time.time() - start > timeout:
                         return None
                     time.sleep(pool_period)
 
     # This can be also move, but can stay here because we access to self.__account.address
-    def post_session(self, session_id: int, remote_url: str):
-        private, public = Key.key_pair()
+    def post_session(
+        self, session_id: int, remote_url: str, node_type: NodeType = NodeType.WIREGUARD
+    ):
+        if node_type == NodeType.WIREGUARD:
+            # [from golang] wgPrivateKey, err = wireguardtypes.NewPrivateKey()
+            # [from golang] key = wgPrivateKey.Public().String()
+            _, key = Key.key_pair()
+        else:  # NodeType.V2RAY
+            # os.urandom(16)
+            # [from golang] uid, err = uuid.GenerateRandomBytes(16)
+            # [from golang] key = base64.StdEncoding.EncodeToString(append([]byte{0x01}, uid...))
+            key = base64.b64encode(uuid.uuid4().bytes).decode("utf-8")
+
+        # append([]byte{0x01}, uid) is required)
+        # The key of wireguard is 32 bytes length, for v2ray only 16?
 
         sk = ecdsa.SigningKey.from_string(
             self.__account.private_key, curve=ecdsa.SECP256k1, hashfunc=hashlib.sha256
@@ -163,11 +193,10 @@ class SentinelTransactor:
         signature = sk.sign(bige_session)
 
         payload = {
-            "key": f"{public}",
+            "key": f"{key}",
             "signature": base64.b64encode(signature).decode("utf-8"),
         }
-        # Get invalid signature, dammit
-        return private, SentinelTransactor.post_session_node(
+        return SentinelTransactor.post_session_node(
             f"{remote_url}/accounts/{self.__account.address}/sessions/{session_id}",
             payload,
         )
@@ -192,6 +221,7 @@ class SentinelTransactor:
         request.add_header("Content-Type", "application/json; charset=utf-8")
         json_data_bytes = json.dumps(payload).encode("utf-8")  # needs to be bytes
         request.add_header("Content-Length", len(json_data_bytes))
+        # TODO: status code != 200 was not handled
         with urllib.request.urlopen(
             request, json_data_bytes, timeout=(60 * 60), context=ctx
         ) as f:

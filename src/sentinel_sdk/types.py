@@ -15,6 +15,11 @@ class Status(Enum):
         return f"Status{self.name.title()}"
 
 
+class NodeType(Enum):
+    WIREGUARD = 1
+    V2RAY = 2
+
+
 class PageRequest:
     """
     // key is a value returned in PageResponse.next_key to begin
