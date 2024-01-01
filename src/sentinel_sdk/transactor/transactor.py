@@ -43,15 +43,20 @@ class SentinelTransactor:
             print(f"{self.seed_path} file not found")
 
     def __setup_account_and_client(
-        self, mnemonic: str, grpcaddr: str, grpcport: int, use_ssl: bool = False
+        self, secret: str, grpcaddr: str, grpcport: int, use_ssl: bool = False
     ):
         # From mnemonic to pvt key using Bip, we could use directly Account(seed_phrase=)
         # But we would calculate the account_number dinamcally :)
+        # Hackish way to discern between mnemonic and hex private key
 
-        seed_bytes = Bip39SeedGenerator(mnemonic).Generate()
-        bip44_def_ctx = Bip44.FromSeed(
-            seed_bytes, Bip44Coins.COSMOS
-        ).DeriveDefaultPath()
+        if(len(secret.split(" ")) > 0):
+            seed_bytes = Bip39SeedGenerator(secret).Generate()
+            bip44_def_ctx = Bip44.FromSeed(
+                seed_bytes, Bip44Coins.COSMOS
+                ).DeriveDefaultPath()
+        else:
+            bip44_def_ctx = Bip44.FromPrivKey(bytes.fromhex(secret), Bip44Coins.COSMOS)
+            
         sha_key = SHA256.new()
         ripemd_key = RIPEMD160.new()
         sha_key.update(bip44_def_ctx.PublicKey().RawCompressed().m_data_bytes)
