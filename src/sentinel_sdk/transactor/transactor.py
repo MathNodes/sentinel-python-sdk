@@ -91,16 +91,14 @@ class SentinelTransactor:
 
     def PrepareOrTransactMsg(   self, 
                                 msg: Any, 
-                                denom: str = "udvpn",
                                 transact: bool = False,
                                 tx_params : TxParams = TxParams(),
                                 **kwargs):
         msg_args = {
-            k: kwargs[k] for k in kwargs if k in ["address", "node_address", "id", "gigabytes", "hours", "rating"]
+            k: kwargs[k] for k in kwargs if k in ["address", "node_address", "id", "gigabytes", "hours", "rating", "denom"]
         }
-        msg_args['denom'] = denom
+                                    
         msg_args['frm'] = self.__account.address
-
         prepared_msg = msg(**msg_args)
 
         return self.transaction([prepared_msg], tx_params) if transact else prepared_msg
