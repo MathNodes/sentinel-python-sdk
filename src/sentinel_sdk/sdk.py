@@ -6,14 +6,14 @@ from sentinel_sdk.transactor.transactor import SentinelTransactor
 
 
 class SDKInstance:
-    def __init__(self, grpcaddr: str, grpcport: int, ssl: bool = False):
+    def __init__(self, grpcaddr: str, grpcport: int, secret: str = None, ssl: bool = False):
         try:
             channel = self.__create_and_verify_channel(grpcaddr, grpcport, ssl=ssl)
         except grpc._channel._InactiveRpcError:
             raise ConnectionError("gRPC endpoint is invalid or not responding")
 
         self.multiquerier = SentinelQuerier(channel)
-        self.transactor = SentinelTransactor(grpcaddr, grpcport, channel)
+        self.transactor = SentinelTransactor(grpcaddr, grpcport, secret, channel)
 
     def __create_and_verify_channel(
         self, grpcaddr: str, grpcport: int, ssl: bool = False
