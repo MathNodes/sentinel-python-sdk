@@ -13,7 +13,7 @@ import ecdsa
 import grpc
 import sentinel_protobuf.cosmos.auth.v1beta1.auth_pb2 as cosmos_auth_v1beta1_auth_pb2
 import sentinel_protobuf.cosmos.auth.v1beta1.query_pb2 as cosmos_auth_v1beta1_query_pb2
-from bip_utils import Bech32Encoder, Bip39SeedGenerator, Bip44, Bip44Coins
+from bip_utils import Bech32Encoder, Bip39SeedGenerator, Bip44, Bip44Coins, Bip39MnemonicValidator
 from Crypto.Hash import RIPEMD160, SHA256
 from mospy import Account, Transaction
 from mospy.clients import GRPCClient
@@ -22,7 +22,7 @@ from sentinel_protobuf.cosmos.base.v1beta1.coin_pb2 import Coin
 from sentinel_protobuf.sentinel.node.v2.msg_pb2 import MsgSubscribeRequest
 from sentinel_protobuf.sentinel.session.v2.msg_pb2 import MsgEndRequest, MsgStartRequest
 
-from sentinel_sdk.types import NodeType
+from sentinel_sdk.types import NodeType, TxParams
 
 
 class SentinelTransactor:
@@ -30,24 +30,21 @@ class SentinelTransactor:
         self,
         grpcaddr: str,
         grpcport: int,
+        secret: str,
         query_channel: grpc.Channel,
         use_ssl: bool = False,
     ):
         self._query_channel = query_channel
-        self.seed_path = os.path.join(os.getcwd(), "test.seed")
-        if os.path.isfile(self.seed_path) is True:
-            with open(self.seed_path, "r", encoding="utf-8") as f:
-                mnemonic = f.read()
-            self.__setup_account_and_client(mnemonic, grpcaddr, grpcport, use_ssl)
+        if(secret):
+            self.__setup_account_and_client(grpcaddr, grpcport, secret, use_ssl)
         else:
-            print(f"{self.seed_path} file not found")
+            print("Transactor NOT instantiated, missing secret")
 
     def __setup_account_and_client(
-        self, secret: str, grpcaddr: str, grpcport: int, use_ssl: bool = False
+        self, grpcaddr: str, grpcport: int, secret: str, use_ssl: bool = False
     ):
         # From mnemonic to pvt key using Bip, we could use directly Account(seed_phrase=)
         # But we would calculate the account_number dinamcally :)
-        
         try:
             Bip39MnemonicValidator().Validate(secret)
             seed_bytes = Bip39SeedGenerator(secret).Generate()
@@ -92,7 +89,24 @@ class SentinelTransactor:
     # We need to find a good way to this. **The method could return only the MsgRequest and type_url**
     # Who wants to submit the tx, can call transaction (we should also implement multi-add_raw_msg), one tx with multiple msg
 
-    def subscribe_to_gigabytes(self, node_address: str, gigabytes: int):
+    def PrepareOrTransactMsg(   self, 
+                                msg: Any, 
+                                denom: str = "udvpn",
+                                transact: bool = False,
+                                tx_params : TxParams = TxParams(),
+                                **kwargs):
+        msg_args = {
+            k: kwargs[k] for k in kwargs if k in ["address", "node_address", "id", "gigabytes", "hours", "rating"]
+        }
+        msg_args['denom'] = denom
+        msg_args['frm'] = self.__account.address
+
+        prepared_msg = msg(**msg_args)
+
+        return self.transaction([prepared_msg], tx_params) if transact else prepared_msg
+
+
+    def subscribe_to_gigabytes(self, node_address: str, gigabytes: int, tx_params: TxParams = TxParams()):
         msg = MsgSubscribeRequest(
             frm=self.__account.address,
             node_address=node_address,
@@ -102,7 +116,7 @@ class SentinelTransactor:
         )
         return self.transaction([msg])
 
-    def subscribe_to_hours(self, node_address: str, hours: int):
+    def subscribe_to_hours(self, node_address: str, hours: int, tx_params: TxParams = TxParams()):
         msg = MsgSubscribeRequest(
             frm=self.__account.address,
             node_address=node_address,
@@ -110,32 +124,29 @@ class SentinelTransactor:
             hours=hours,
             denom="udvpn",
         )
-        return self.transaction([msg])
+        return self.transaction([msg], tx_params)
 
-    def start_request(self, subscription_id: int, node_address: str):
+    def start_request(self, subscription_id: int, node_address: str, tx_params: TxParams = TxParams()):
         msg = MsgStartRequest(
             frm=self.__account.address, id=int(subscription_id), address=node_address
         )
-        return self.transaction([msg])
+        return self.transaction([msg], tx_params)
 
-    def end_request(self, session_id: int, rating: int = 0):
+    def end_request(self, session_id: int, rating: int = 0, tx_params: TxParams = TxParams()):
         msg = MsgEndRequest(
             frm=self.__account.address, id=int(session_id), rating=rating
         )
-        return self.transaction([msg])
+        return self.transaction([msg], tx_params)
 
     def transaction(
         self,
         messages: list,
-        fee_denom: str = "udvpn",
-        fee_amount: int = 20000,
-        gas: float = 0,
-        gas_multiplier: float = 1.5,
+        tx_params: TxParams,
     ) -> dict:
         tx = Transaction(
             account=self.__account,
-            fee=Coin(denom=fee_denom, amount=f"{fee_amount}"),
-            gas=gas,
+            fee=Coin(denom=tx_params.denom, amount=f"{tx_params.fee_amount}"),
+            gas=tx_params.gas,
             protobuf="sentinel",
             chain_id="sentinelhub-2",
         )
@@ -148,9 +159,9 @@ class SentinelTransactor:
 
         # inplace, auto-update gas with update=True
         # auto calculate the gas only if was not already passed as args:
-        if gas == 0:
+        if tx_params.gas == 0:
             self.__client.estimate_gas(
-                transaction=tx, update=True, multiplier=gas_multiplier
+                transaction=tx, update=True, multiplier=tx_params.gas_multiplier
             )
 
         tx_response = self.__client.broadcast_transaction(transaction=tx)
