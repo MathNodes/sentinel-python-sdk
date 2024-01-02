@@ -1,9 +1,9 @@
 # https://github.com/MathNodes/cosmospy-protobuf/blob/chain/sentinel/src/sentinel_protobuf/sentinel/types/v1/status.proto
 from enum import Enum
-
 # https://github.com/cosmos/cosmos-sdk/blob/main/types/query/pagination.pb.go
 import sentinel_protobuf.cosmos.base.query.v1beta1.pagination_pb2 as cosmos_pagination_pb2
 
+from dataclasses import dataclass
 
 class Status(Enum):
     UNSPECIFIED = 0
@@ -18,6 +18,13 @@ class Status(Enum):
 class NodeType(Enum):
     WIREGUARD = 1
     V2RAY = 2
+
+@dataclass
+class TxParams:
+    denom: str = "udvpn"
+    fee_amount: int = 20000
+    gas: float = 0
+    gas_multiplier: float = 1.5
 
 
 class PageRequest:
