@@ -80,7 +80,7 @@ class PlanModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
-    def UpdateStatus(self, id: int, status: int):
+    def UpdateStatus(self, id: int, status: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUpdateStatusRequest(
             frm = self._account.address,
             id = id,
