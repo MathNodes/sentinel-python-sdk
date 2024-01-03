@@ -57,12 +57,13 @@ class PlanModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
-    def LinkNode(self, id: int, node_address: str):
+    def LinkNode(self, id: int, node_address: str, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgLinkNodeRequest(
             frm = self._account.address,
             id = id,
             node_address = node_address,
         )
+        return self.transaction([msg], tx_params)
 
     def Subscribe(self, denom: str, id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgSubscribeRequest(
