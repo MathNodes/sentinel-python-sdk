@@ -152,7 +152,7 @@ class SubscriptionModule(Querier, Transactor):
             for subscription in subscriptions
         ]
 
-    def Allocate(address: str, bytes: str, id: int, tx_params: TxParams = TxParams()):
+    def Allocate(self, address: str, bytes: str, id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgAllocateRequest(
             frm = self._account.address,
             address = address,
@@ -161,7 +161,7 @@ class SubscriptionModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
-    def Cancel(id: int, tx_params: TxParams = TxParams()):
+    def Cancel(self, id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgCancelRequest(
             frm = self._account.address,
             id = id,
