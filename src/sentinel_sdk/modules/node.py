@@ -133,7 +133,7 @@ class NodeModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
-    def UpdateNodeStatus(self, status: int):
+    def UpdateNodeStatus(self, status: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUpdateStatusRequest(
             frm = self._account.address,
             status = status.value,
