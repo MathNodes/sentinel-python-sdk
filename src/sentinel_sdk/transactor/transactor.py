@@ -53,6 +53,9 @@ class Transactor:
         for message in messages:
             tx.add_raw_msg(message, type_url=f"/{message.DESCRIPTOR.full_name}")
 
+        # Required before each tx of we get account sequence mismatch, expected 945, got 944: incorrect account sequence
+        self._client.load_account_data(account=self._account)
+
         # inplace, auto-update gas with update=True
         # auto calculate the gas only if was not already passed as args:
         if tx_params.gas == 0:
@@ -65,7 +68,7 @@ class Transactor:
         return tx_response
 
     def wait_transaction(
-        self, tx_hash: str, timeout: float = 60, pool_period: float = 60
+        self, tx_hash: str, timeout: float = 120, pool_period: float = 10
     ):
         start = time.time()
         while 1:
