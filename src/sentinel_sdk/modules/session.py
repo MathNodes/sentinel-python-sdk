@@ -80,18 +80,18 @@ class SessionModule(Querier, Transactor):
             pagination=pagination,
         )
         
-    def StartSession(self, address: str, id: int, tx_params: TxParams = TxParams()):
+    def StartSession(self, address: str, session_id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgStartRequest(
             frm = self._account.address,
-            id = id,
+            id = session_id,
             address = address
         )
         return self.transaction([msg], tx_params)
 
-    def EndSession(self, id: int, rating: int, tx_params: TxParams = TxParams()):
+    def EndSession(self, session_id: int, rating: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgEndRequest(
             frm = self._account.address,
-            id = id,
+            id = session_id,
             rating = rating,
         )
         return self.transaction([msg], tx_params)

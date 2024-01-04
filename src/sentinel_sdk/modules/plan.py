@@ -57,34 +57,34 @@ class PlanModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
-    def LinkNode(self, id: int, node_address: str, tx_params: TxParams = TxParams()):
+    def LinkNode(self, plan_id: int, node_address: str, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgLinkNodeRequest(
             frm = self._account.address,
-            id = id,
+            id = plan_id,
             node_address = node_address,
         )
         return self.transaction([msg], tx_params)
 
-    def Subscribe(self, denom: str, id: int, tx_params: TxParams = TxParams()):
+    def Subscribe(self, denom: str, plan_id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgSubscribeRequest(
             frm = self._account.address,
-            id = id,
+            id = plan_id,
             denom = denom,
         )
         return self.transaction([msg], tx_params)
 
-    def UnlinkNode(self, id: int, node_address: str, tx_params: TxParams = TxParams()):
+    def UnlinkNode(self, plan_id: int, node_address: str, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUnlinkNodeRequest(
             frm = self._account.address,
-            id = id,
+            id = plan_id,
             node_address = node_address,
         )
         return self.transaction([msg], tx_params)
 
-    def UpdateStatus(self, id: int, status: int, tx_params: TxParams = TxParams()):
+    def UpdateStatus(self, plan_id: int, status: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUpdateStatusRequest(
             frm = self._account.address,
-            id = id,
+            id = plan_id,
             status = status,
         )
         return self.transaction([msg], tx_params)
