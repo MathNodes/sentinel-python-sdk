@@ -84,7 +84,7 @@ class SessionModule(Querier, Transactor):
         msg = msg_pb2.MsgStartRequest(
             frm = self._account.address,
             id = id,
-            rating = rating,
+            address = address
         )
         return self.transaction([msg], tx_params)
 
