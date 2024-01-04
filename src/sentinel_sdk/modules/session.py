@@ -4,7 +4,10 @@ import grpc
 import sentinel_protobuf.sentinel.session.v2.querier_pb2 as sentinel_session_v2_querier_pb2
 import sentinel_protobuf.sentinel.session.v2.querier_pb2_grpc as sentinel_session_v2_querier_pb2_grpc
 import sentinel_protobuf.sentinel.session.v2.msg_pb2 as msg_pb2
-import sentinel_protobuf.sentinel.session.v2.proof_pb2 as proof_pb2
+
+from sentinel_protobuf.sentinel.session.v2.proof_pb2 import Proof
+from sentinel_protobuf.sentinel.types.v1.bandwidth_pb2 import Bandwidth
+from google.protobuf.duration_pb2 import Duration
 
 from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
@@ -80,7 +83,7 @@ class SessionModule(Querier, Transactor):
             id=subscription_id,
             pagination=pagination,
         )
-        
+
     def StartSession(self, address: str, session_id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgStartRequest(
             frm = self._account.address,
@@ -97,10 +100,17 @@ class SessionModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
-    def UpdateDetails(self, proof: proof_pb2.Proof, signature: bytes, tx_params: TxParams = TxParams()):
+    def UpdateDetails(self, proof: Proof, signature: bytes, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUpdateDetailsRequest(
             frm = self._account.address,
             proof = proof,
             signature = signature,
         )
         return self.transaction([msg], tx_params)
+
+    def Proof(self, session_id: int, bandwidth: Bandwidth, duration: Duration) -> Proof:
+        return Proof(
+            id=session_id,
+            bandwidth=bandwidth,
+            duration=duration
+        )
