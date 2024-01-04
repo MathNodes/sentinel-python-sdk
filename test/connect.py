@@ -32,7 +32,7 @@ from bip_utils import Bip39SeedGenerator, Bip44, Bip44Coins
 # pip install git+https://github.com/Tkd-Alex/mospy.git
 from mospy import Account, Transaction
 from mospy.clients import GRPCClient
-from python_wireguard import Key
+from pywgkey import WgKey
 from sentinel_protobuf.cosmos.base.v1beta1.coin_pb2 import Coin
 from sentinel_protobuf.sentinel.node.v2.msg_pb2 import MsgSubscribeRequest
 from sentinel_protobuf.sentinel.node.v2.querier_pb2 import QueryNodeRequest
@@ -218,7 +218,9 @@ for session in response.sessions:
             break
 
 # https://github.com/sentinel-official/cli-client/blob/master/cmd/connect.go#L253-L306
-private, public = Key.key_pair()
+wgkey = WgKey()
+private = wgkey.privkey
+public = wgkey.pubkey
 
 prv_key = bip44_def_ctx.PrivateKey().Raw().ToBytes()
 sk = ecdsa.SigningKey.from_string(

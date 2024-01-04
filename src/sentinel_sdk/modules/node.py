@@ -18,7 +18,7 @@ from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
 from sentinel_sdk.types import PageRequest, TxParams, NodeType
 
-from python_wireguard import Key
+from pywgkey import WgKey
 
 
 class NodeModule(Querier, Transactor):
@@ -164,7 +164,9 @@ class NodeModule(Querier, Transactor):
         if node_type == NodeType.WIREGUARD:
             # [from golang] wgPrivateKey, err = wireguardtypes.NewPrivateKey()
             # [from golang] key = wgPrivateKey.Public().String()
-            _, key = Key.key_pair()
+            wgkey = WgKey()
+            # The private key should be used by the wireguard client
+            key = wgkey.pubkey
         else:  # NodeType.V2RAY
             # os.urandom(16)
             # [from golang] uid, err = uuid.GenerateRandomBytes(16)
@@ -187,7 +189,7 @@ class NodeModule(Querier, Transactor):
         signature = sk.sign(bige_session)
 
         payload = {
-            "key": f"{key}",
+            "key": key,
             "signature": base64.b64encode(signature).decode("utf-8"),
         }
         return self.__post_session(
