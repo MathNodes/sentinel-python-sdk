@@ -1,8 +1,13 @@
 import ssl
 import threading
+import urllib.parse
 import urllib.request
 from typing import Any
-
+import json
+import uuid
+import base64
+import hashlib
+import ecdsa
 import grpc
 import sentinel_protobuf.sentinel.node.v2.node_pb2 as node_pb2
 import sentinel_protobuf.sentinel.node.v2.querier_pb2 as sentinel_node_v2_querier_pb2
@@ -11,18 +16,21 @@ import sentinel_protobuf.sentinel.node.v2.msg_pb2 as msg_pb2
 
 from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
-from sentinel_sdk.types import PageRequest, TxParams
+from sentinel_sdk.types import PageRequest, TxParams, NodeType
+
+from python_wireguard import Key
 
 
 class NodeModule(Querier, Transactor):
-    def __init__(self, channel: grpc.Channel, status_fetch_timeout: int, account, client):
-        self.status_fetch_timeout = status_fetch_timeout
+    def __init__(self, channel: grpc.Channel, node_timeout: int, account, client):
+        self.node_timeout = node_timeout
         self.__stub = sentinel_node_v2_querier_pb2_grpc.QueryServiceStub(channel)
 
         # Disable SSL verification
         self.__ssl_ctx = ssl.create_default_context()
         self.__ssl_ctx.check_hostname = False
         self.__ssl_ctx.verify_mode = ssl.CERT_NONE
+
         self._account = account
         self._client = client
 
@@ -55,7 +63,7 @@ class NodeModule(Querier, Transactor):
             contents = urllib.request.urlopen(
                 f"{node_endpoint}/status",
                 context=self.__ssl_ctx,
-                timeout=self.status_fetch_timeout,
+                timeout=self.node_timeout,
             ).read()
             contents = contents.decode("utf-8")
         except urllib.error.URLError:
@@ -140,3 +148,49 @@ class NodeModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
+    def __post_session(self, url: str, payload: dict) -> str:
+        request = urllib.request.Request(url)
+        request.add_header("Content-Type", "application/json; charset=utf-8")
+        json_data_bytes = json.dumps(payload).encode("utf-8")  # needs to be bytes
+        request.add_header("Content-Length", len(json_data_bytes))
+        # TODO: status code != 200 was not handled
+        with urllib.request.urlopen(request, json_data_bytes, timeout=self.node_timeout, context=self.__ssl_ctx) as f:
+            return f.read().decode("utf-8")
+
+    # TODO: find another 'fancy' name
+    def PostSession(
+        self, session_id: int, remote_url: str, node_type: NodeType = NodeType.WIREGUARD
+    ):
+        if node_type == NodeType.WIREGUARD:
+            # [from golang] wgPrivateKey, err = wireguardtypes.NewPrivateKey()
+            # [from golang] key = wgPrivateKey.Public().String()
+            _, key = Key.key_pair()
+        else:  # NodeType.V2RAY
+            # os.urandom(16)
+            # [from golang] uid, err = uuid.GenerateRandomBytes(16)
+            # [from golang] key = base64.StdEncoding.EncodeToString(append([]byte{0x01}, uid...))
+            key = base64.b64encode(uuid.uuid4().bytes).decode("utf-8")
+
+        # append([]byte{0x01}, uid) is required)
+        # The key of wireguard is 32 bytes length, for v2ray only 16?
+
+        # self._account inherited from Transactor class.
+        # self._account.private_key and self._account.address
+
+        sk = ecdsa.SigningKey.from_string(
+            self._account.private_key, curve=ecdsa.SECP256k1, hashfunc=hashlib.sha256
+        )
+
+        session_id = int(session_id)
+        # Uint64ToBigEndian
+        bige_session = session_id.to_bytes(8, "big")
+        signature = sk.sign(bige_session)
+
+        payload = {
+            "key": f"{key}",
+            "signature": base64.b64encode(signature).decode("utf-8"),
+        }
+        return self.__post_session(
+            f"{remote_url}/accounts/{self._account.address}/sessions/{session_id}",
+            payload,
+        )
