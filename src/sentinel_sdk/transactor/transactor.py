@@ -19,15 +19,15 @@ class Transactor:
     # We need to find a good way to this. **The method could return only the MsgRequest and type_url**
     # Who wants to submit the tx, can call transaction (we should also implement multi-add_raw_msg), one tx with multiple msg
 
-    def PrepareOrTransactMsg(   self, 
-                                msg: Any, 
+    def PrepareOrTransactMsg(   self,
+                                msg: Any,
                                 transact: bool = False,
                                 tx_params : TxParams = TxParams(),
                                 **kwargs):
         msg_args = {
             k: kwargs[k] for k in kwargs if k in ["address", "node_address", "id", "gigabytes", "hours", "rating", "denom"]
         }
-                                    
+
         msg_args['frm'] = self.__account.address
         prepared_msg = msg(**msg_args)
 
@@ -39,6 +39,9 @@ class Transactor:
         messages: list,
         tx_params: TxParams = TxParams(),
     ) -> dict:
+        if self._account is None or self._client is None:
+            raise ValueError("Transactor was not initialized due missing secret, unable to transact")
+
         tx = Transaction(
             account=self._account,
             fee=Coin(denom=tx_params.denom, amount=f"{tx_params.fee_amount}"),
@@ -70,6 +73,9 @@ class Transactor:
     def wait_transaction(
         self, tx_hash: str, timeout: float = 120, pool_period: float = 10
     ):
+        if self._account is None or self._client is None:
+            raise ValueError("Transactor was not initialized due missing secret, unable to wait transaction")
+
         start = time.time()
         while 1:
             try:

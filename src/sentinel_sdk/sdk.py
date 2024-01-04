@@ -26,10 +26,15 @@ class SDKInstance:
             self.__create_and_verify_channel(grpcaddr, grpcport, ssl=ssl)
         except grpc._channel._InactiveRpcError:
             raise ConnectionError("gRPC endpoint is invalid or not responding")
-        
-        self.__setup_account_and_client(grpcaddr, grpcport, secret, ssl)
+
+        self._client = None
+        self._account = None
+
+        if secret is not None:
+            self.__setup_account_and_client(grpcaddr, grpcport, secret, ssl)
+
         self.__load_modules()
-        
+
 
     def __create_and_verify_channel(
         self, grpcaddr: str, grpcport: int, ssl: bool = False
@@ -63,7 +68,7 @@ class SDKInstance:
                 bip44_def_ctx = Bip44.FromPrivateKey(bytes.fromhex(secret), Bip44Coins.COSMOS)
             except:
                 raise ValueError("Unrecognized secret either as a mnemonic or hex private key")
-            
+
         sha_key = SHA256.new()
         ripemd_key = RIPEMD160.new()
         sha_key.update(bip44_def_ctx.PublicKey().RawCompressed().m_data_bytes)
@@ -106,4 +111,3 @@ class SDKInstance:
         self.swaps = SwapModule(self._channel, self._account, self._client)
 
 
-    
