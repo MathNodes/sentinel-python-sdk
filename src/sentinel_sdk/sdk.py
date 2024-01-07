@@ -122,11 +122,13 @@ class SDKInstance:
     def renew_grpc(self, grpcaddr: str, grpcport: int, use_ssl: bool = False):
         self._client = self.__create_client(grpcaddr, grpcport)
         self._client.load_account_data(account=self._account)
-
-    def get_grpc_host(self):
+        
+    @property
+    def grpcaddr(self):
         return self._client._host
-
-    def get_grpc_port(self):
+        
+    @property
+    def grpcport(self):
         return self._client._port
 
         
