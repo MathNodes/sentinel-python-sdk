@@ -58,6 +58,11 @@ class SDKInstance:
         self._channel = channel
 
     def __setup_account_and_client(self, grpcaddr: str, grpcport: int, secret: str, use_ssl: bool = False):
+        self._account = self.__create_account(secret)
+        self._client = self.__create_client(grpcaddr, grpcport, use_ssl)
+        self._client.load_account_data(account=self._account)
+
+    def __create_account(self, secret: str):
         try:
             Bip39MnemonicValidator().Validate(secret)
             seed_bytes = Bip39SeedGenerator(secret).Generate()
@@ -75,19 +80,19 @@ class SDKInstance:
         ripemd_key.update(sha_key.digest())
         bech32_pub = Bech32Encoder.Encode("sent", ripemd_key.digest())
         account_num = self.__get_account_number(bech32_pub)
-
-        self._account = Account(
+        account = Account(
             private_key=bip44_def_ctx.PrivateKey().Raw().ToHex(),
             hrp="sent",
             account_number=account_num,
             protobuf="sentinel",
         )
-        self._client = GRPCClient(
+        return account
+
+    def __create_client(self, grpcaddr: str, grpcport: int, use_ssl: bool = False):
+        client = GRPCClient(
             host=grpcaddr, port=grpcport, ssl=use_ssl, protobuf="sentinel"
         )
-        self._client.load_account_data(account=self._account)
-
-
+        return client
 
     def __get_account_number(self, address: str):
         tmp_stub = self._channel.unary_unary(
@@ -110,4 +115,18 @@ class SDKInstance:
         self.subscriptions = SubscriptionModule(self._channel, self._account, self._client)
         self.swaps = SwapModule(self._channel, self._account, self._client)
 
+    def renew_account(self, secret: str):
+        self._account = self.__create_account(secret)
+        self._client.load_account_data(account=self._account)
 
+    def renew_grpc(self, grpcaddr: str, grpcport: int, use_ssl: bool = False):
+        self._client = self.__create_client(grpcaddr, grpcport)
+        self._client.load_account_data(account=self._account)
+
+    def get_grpc_host(self):
+        return self._client._host
+
+    def get_grpc_port(self):
+        return self._client._port
+
+        
