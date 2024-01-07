@@ -118,10 +118,12 @@ class SDKInstance:
     def renew_account(self, secret: str):
         self._account = self.__create_account(secret)
         self._client.load_account_data(account=self._account)
+        self.__load_modules()
 
     def renew_grpc(self, grpcaddr: str, grpcport: int, use_ssl: bool = False):
         self._client = self.__create_client(grpcaddr, grpcport)
         self._client.load_account_data(account=self._account)
+        self.__load_modules()
         
     @property
     def grpcaddr(self):
