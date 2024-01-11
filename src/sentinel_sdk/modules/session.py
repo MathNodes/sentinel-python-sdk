@@ -84,10 +84,10 @@ class SessionModule(Querier, Transactor):
             pagination=pagination,
         )
 
-    def StartSession(self, address: str, session_id: int, tx_params: TxParams = TxParams()):
+    def StartSession(self, address: str, subscription_id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgStartRequest(
             frm = self._account.address,
-            id = session_id,
+            id = subscription_id,
             address = address
         )
         return self.transaction([msg], tx_params)

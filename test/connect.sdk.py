@@ -91,10 +91,10 @@ except grpc.RpcError as rpc_error:
 
 for session in sessions:
     if session.status == Status.ACTIVE.value:
-        tx = sdk.sessions.EndSession(id=session.id, rating=0)
+        tx = sdk.sessions.EndSession(session_id=session.id, rating=0)
         print(sdk.sessions.wait_transaction(tx["hash"]))
 
-tx = sdk.sessions.StartSession(id=int(subscription_id), address=node_address)
+tx = sdk.sessions.StartSession(subscription_id=int(subscription_id), address=node_address)
 tx_response = sdk.sessions.wait_transaction(tx["hash"])
 
 session_id = search_attribute(
