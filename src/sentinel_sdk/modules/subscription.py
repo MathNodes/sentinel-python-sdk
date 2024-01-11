@@ -118,7 +118,7 @@ class SubscriptionModule(Querier, Transactor):
             pagination=pagination,
         )
         return [
-            self.__ConvertAnyToPlanSubscription(subscription.value)
+            self.__ConvertAnyToNodeSubscription(subscription.value)
             for subscription in subscriptions
         ]
 
