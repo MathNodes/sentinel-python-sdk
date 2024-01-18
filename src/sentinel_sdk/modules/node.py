@@ -36,6 +36,9 @@ class NodeModule(Querier, Transactor):
 
         self.__nodes_status_cache = {}
 
+    def QueryParams(self) -> Any:
+        return self.__stub.QueryParams(sentinel_node_v2_querier_pb2.QueryParamsRequest()).params
+
     def QueryNode(self, address: str) -> Any:
         r = self.__stub.QueryNode(
             sentinel_node_v2_querier_pb2.QueryNodeRequest(address=address)
