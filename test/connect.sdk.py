@@ -11,7 +11,7 @@ from sentinel_sdk.utils import search_attribute
 # GRPC_VERBOSITY=debug GRPC_TRACE=tcp,http python test/queryall.py
 
 # NEVER SHARE YOUR SECRET!
-secret = "abdc efgh 1234 5678"
+secret = input("your secret: ")
 
 sdk = SDKInstance(grpcaddr="grpc.sentinel.co", grpcport=9090, secret=secret)
 
@@ -19,11 +19,10 @@ sdk = SDKInstance(grpcaddr="grpc.sentinel.co", grpcport=9090, secret=secret)
 # For example: sdk.sessions._account.address
 print(sdk.nodes._account.address)
 
-node_address = "sentnode1234abcd"
+node_address = input("give a node address: ")
 node = sdk.nodes.QueryNode(node_address)
 node_status = json.loads(sdk.nodes.QueryNodeStatus(node))
 assert node.address == node_address == node_status["result"]["address"]
-
 
 try:
     # tx = sdk.transactor.subscribe_to_gigabytes(node_address=node_address, gigabytes=1)
@@ -40,9 +39,10 @@ except grpc.RpcError as rpc_error:
     print(rpc_error.details())  # pylint: disable=no-member
     print(rpc_error.debug_error_string())  # pylint: disable=no-member
 
-# The wait_transaction can be founded in every modules because is inherited
-# For example: tx_response = sdk.sessions.wait_transaction(tx["hash"])
-tx_response = sdk.nodes.wait_transaction(tx["hash"])
+# The wait_for_tx can be founded in every modules because is inherited
+# For example: tx_response = sdk.sessions.wait_for_tx(tx["hash"])
+tx_response = sdk.nodes.wait_for_tx(tx["hash"])
+
 subscription_id = search_attribute(
     tx_response, "sentinel.node.v2.EventCreateSubscription", "id"
 )
@@ -81,7 +81,7 @@ messages.append(
 # TODO: Currently doesn't work, we should call self.__client.load_account_data, before each tx
 try:
     tx = sdk.transactor.transaction(messages, tx_params=TxParams())
-    tx_response = sdk.transactor.wait_transaction(tx["hash"])
+    tx_response = sdk.transactor.wait_for_tx(tx["hash"])
 except grpc.RpcError as rpc_error:
     # TODO: this should be handled on skd side
     print(rpc_error.code())  # pylint: disable=no-member
@@ -92,10 +92,10 @@ except grpc.RpcError as rpc_error:
 for session in sessions:
     if session.status == Status.ACTIVE.value:
         tx = sdk.sessions.EndSession(session_id=session.id, rating=0)
-        print(sdk.sessions.wait_transaction(tx["hash"]))
+        print(sdk.sessions.wait_for_tx(tx["hash"]))
 
 tx = sdk.sessions.StartSession(subscription_id=int(subscription_id), address=node_address)
-tx_response = sdk.sessions.wait_transaction(tx["hash"])
+tx_response = sdk.sessions.wait_for_tx(tx["hash"])
 
 session_id = search_attribute(
     tx_response, "sentinel.session.v2.EventStart", "id"

@@ -70,21 +70,16 @@ class Transactor:
         # tx_response = {"hash": hash, "code": code, "log": log}
         return tx_response
 
-    def wait_transaction(
-        self, tx_hash: str, timeout: float = 120, pool_period: float = 10
-    ):
+    def wait_for_tx(self, tx_hash: str, timeout: float = 120, poll_period: float = 10):
         if self._account is None or self._client is None:
             raise ValueError("Transactor was not initialized due missing secret, unable to wait transaction")
 
-        start = time.time()
-        while 1:
-            try:
-                return self._client.get_tx(tx_hash)
-            except grpc.RpcError as rpc_error:
-                # https://github.com/grpc/grpc/tree/master/examples/python/errors
-                # Instance of 'RpcError' has no 'code' member, work on runtime
-                status_code = rpc_error.code()  # pylint: disable=no-member
-                if status_code == grpc.StatusCode.NOT_FOUND:
-                    if time.time() - start > timeout:
-                        return None
-                    time.sleep(pool_period)
+        return self._client.wait_for_tx(
+            tx_hash=tx_hash,
+            timeout=timeout,
+            poll_period=poll_period
+        )
+
+    # back-compatibility
+    def wait_transaction(self, tx_hash: str, timeout: float = 120, poll_period: float = 10):
+        return self.wait_for_tx(tx_hash=tx_hash, timeout=timeout, poll_period=poll_period)
