@@ -59,6 +59,7 @@ class SDKInstance:
 
     def __setup_account_and_client(self, grpcaddr: str, grpcport: int, secret: str, use_ssl: bool = False):
         self._account = self.__create_account(secret)
+        self._provider_account = self.__create_provider_account(secret)
         self._client = self.__create_client(grpcaddr, grpcport, use_ssl)
         self._client.load_account_data(account=self._account)
 
@@ -87,6 +88,32 @@ class SDKInstance:
             protobuf="sentinel",
         )
         return account
+    
+    def __create_provider_account(self, secret: str):
+        try:
+            Bip39MnemonicValidator().Validate(secret)
+            seed_bytes = Bip39SeedGenerator(secret).Generate()
+            bip44_def_ctx = Bip44.FromSeed(seed_bytes, Bip44Coins.COSMOS).DeriveDefaultPath()
+        except:
+            try:
+                int(secret, 16)
+                bip44_def_ctx = Bip44.FromPrivateKey(bytes.fromhex(secret), Bip44Coins.COSMOS)
+            except:
+                raise ValueError("Unrecognized secret either as a mnemonic or hex private key")
+
+        sha_key = SHA256.new()
+        ripemd_key = RIPEMD160.new()
+        sha_key.update(bip44_def_ctx.PublicKey().RawCompressed().m_data_bytes)
+        ripemd_key.update(sha_key.digest())
+        bech32_pub = Bech32Encoder.Encode("sent", ripemd_key.digest())
+        account_num = self.__get_account_number(bech32_pub)
+        account = Account(
+            private_key=bip44_def_ctx.PrivateKey().Raw().ToHex(),
+            hrp="sentprov",
+            account_number=account_num,
+            protobuf="sentinel",
+        )
+        return account
 
     def __create_client(self, grpcaddr: str, grpcport: int, use_ssl: bool = False):
         client = GRPCClient(
@@ -109,7 +136,7 @@ class SDKInstance:
     def __load_modules(self):
         self.nodes = NodeModule(self._channel, 10, self._account, self._client)
         self.deposits = DepositModule(self._channel)
-        self.plans = PlanModule(self._channel, self._account, self._client)
+        self.plans = PlanModule(self._channel, self._account, self._provider_account, self._client)
         self.providers = ProviderModule(self._channel, self._account, self._client)
         self.sessions = SessionModule(self._channel, self._account, self._client)
         self.subscriptions = SubscriptionModule(self._channel, self._account, self._client)

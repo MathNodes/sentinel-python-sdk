@@ -11,9 +11,10 @@ from sentinel_sdk.types import PageRequest, TxParams
 
 
 class PlanModule(Querier, Transactor):
-    def __init__(self, channel: grpc.Channel, account, client):
+    def __init__(self, channel: grpc.Channel, account, provider_account, client):
         self.__stub = sentinel_plan_v2_querier_pb2_grpc.QueryServiceStub(channel)
         self._account = account 
+        self._provider_account = provider_account
         self._client = client
 
     def QueryPlan(self, plan_id: int) -> Any:
@@ -59,7 +60,7 @@ class PlanModule(Querier, Transactor):
 
     def LinkNode(self, plan_id: int, node_address: str, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgLinkNodeRequest(
-            frm = self._account.address,
+            frm = self._provider_account.address,
             id = plan_id,
             node_address = node_address,
         )
@@ -75,7 +76,7 @@ class PlanModule(Querier, Transactor):
 
     def UnlinkNode(self, plan_id: int, node_address: str, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUnlinkNodeRequest(
-            frm = self._account.address,
+            frm = self._provider_account.address,
             id = plan_id,
             node_address = node_address,
         )
@@ -83,7 +84,7 @@ class PlanModule(Querier, Transactor):
 
     def UpdateStatus(self, plan_id: int, status: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUpdateStatusRequest(
-            frm = self._account.address,
+            frm = self._provider_account.address,
             id = plan_id,
             status = status,
         )
