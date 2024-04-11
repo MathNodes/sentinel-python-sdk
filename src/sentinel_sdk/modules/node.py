@@ -2,6 +2,7 @@ import ssl
 import threading
 import urllib.parse
 import urllib.request
+import http.client
 from typing import Any
 import json
 import uuid
@@ -73,7 +74,10 @@ class NodeModule(Querier, Transactor):
             contents = '{"success":false,"urllib-error":"URLError encountered"}'
         except TimeoutError:
             contents = '{"success":false,"urllib-error":"Data reading timed out"}'
-
+        except http.client.RemoteDisconnected:
+            contents = '{"success":false,"http-error":"Remote endpoint closed connection"}'
+        except:
+            contents = '{"success":false,"error":"Unrecognizable error encountered"}'
         if is_in_thread:
             self.__nodes_status_cache[node.address] = contents
         else:
