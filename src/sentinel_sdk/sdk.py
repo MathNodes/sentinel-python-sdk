@@ -29,7 +29,8 @@ class SDKInstance:
 
         self._client = None
         self._account = None
-
+        self._provider_account = None
+        
         if secret is not None:
             self.__setup_account_and_client(grpcaddr, grpcport, secret, ssl)
 
