@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sentinel_sdk"
-version = "0.0.2"
+version = "0.0.3"
 description = "A Sentinel SDK Written in Python"
 authors = [
     { name = "NAST0R" },
-    { name = "Tkd-Alex", email = "dev@ctrl-felix.de" },
+    { name = "Tkd-Alex", email = "alex.tkd.alex@gmail.com" },
     { name = "MathNodes", email = "freQniK@mathnodes.com'" },
 ]
 readme = "README.md"
