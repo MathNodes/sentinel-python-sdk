@@ -22,7 +22,7 @@ class NodeType(Enum):
 @dataclass
 class TxParams:
     denom: str = "udvpn"
-    fee_amount: int = 314159
+    fee_amount: int = 31415
     gas: float = 0
     gas_multiplier: float = 1.5
 

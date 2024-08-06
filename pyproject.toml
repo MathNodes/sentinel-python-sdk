@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sentinel_sdk"
-version = "0.0.4"
+version = "0.0.5"
 description = "A Sentinel SDK Written in Python"
 authors = [
     { name = "NAST0R" },
@@ -25,7 +25,7 @@ dependencies = [
     "sentinel-protobuf==0.3.3",
     "grpcio>=1.51.1",
     "bip-utils==2.9.0",
-    "mospy-wallet==0.5.4",
+    "mospy-wallet==0.6.0",
     "pywgkey"
 ]
 
