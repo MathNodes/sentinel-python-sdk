@@ -2,4 +2,3 @@ sentinel-protobuf==0.3.3
 grpcio>=1.51.1
 bip-utils==2.9.0
 mospy-wallet @ git+https://github.com/Tkd-Alex/mospy.git@development
-pywgkey
