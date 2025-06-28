@@ -4,6 +4,16 @@ A Sentinel SDK Written in Python
 
 ## Install
 
+First install the required dependencies:
+
+```shell
+sudo apt update
+sudo apt install build-essential autoconf automake libtool pkg-config python3-dev
+```
+
+
+
+
 This is now a PyPi package and can be installed directly with pip:
 
 ```shell
