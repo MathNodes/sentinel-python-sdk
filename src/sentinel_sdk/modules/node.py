@@ -19,7 +19,7 @@ from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
 from sentinel_sdk.types import PageRequest, TxParams, NodeType
 
-from pywgkey import WgKey
+from .wireguard import WgKey
 
 
 class NodeModule(Querier, Transactor):
