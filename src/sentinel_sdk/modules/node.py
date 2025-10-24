@@ -14,10 +14,11 @@ import sentinel_protobuf.sentinel.node.v2.node_pb2 as node_pb2
 import sentinel_protobuf.sentinel.node.v2.querier_pb2 as sentinel_node_v2_querier_pb2
 import sentinel_protobuf.sentinel.node.v2.querier_pb2_grpc as sentinel_node_v2_querier_pb2_grpc
 import sentinel_protobuf.sentinel.node.v2.msg_pb2 as msg_pb2
+import sentinel_protobuf.sentinel.node.v3.msg_pb2 as msg_pb2_3
 
 from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
-from sentinel_sdk.types import PageRequest, TxParams, NodeType
+from sentinel_sdk.types import PageRequest, TxParams, NodeType, Price
 
 from .wireguard import WgKey
 
@@ -129,6 +130,7 @@ class NodeModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
+    '''
     def SubscribeToNode(self, node_address: str, gigabytes: int = 0, hours: int = 0, denom: str = "udvpn", tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgSubscribeRequest(
             frm = self._account.address,
@@ -138,7 +140,17 @@ class NodeModule(Querier, Transactor):
             node_address = node_address,
         )
         return self.transaction([msg], tx_params)
-
+    '''
+    
+    def SubscribeToNode(self, node_address: str, gigabytes: int = 0, hours: int = 0, price: Price = Price(), tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgStartSessionRequest(
+            frm = self._account.address,
+            gigabytes = gigabytes,
+            hours = hours,
+            node_address = node_address,
+            max_price = price,
+        )
+        return self.transaction([msg], tx_params)
     def UpdateNodeDetails(self, gigabyte_prices: int, hourly_prices: int, remote_url: str, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUpdateDetailsRequest(
             frm = self._account.address,

@@ -5,6 +5,7 @@ import sentinel_protobuf.sentinel.subscription.v2.querier_pb2 as sentinel_subscr
 import sentinel_protobuf.sentinel.subscription.v2.querier_pb2_grpc as sentinel_subscription_v2_querier_pb2_grpc
 import sentinel_protobuf.sentinel.subscription.v2.subscription_pb2 as subscription_pb2
 import sentinel_protobuf.sentinel.subscription.v2.msg_pb2 as msg_pb2
+import sentinel_protobuf.sentinel.subscription.v3.msg_pb2 as msg_pb2_3
 
 from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
@@ -168,6 +169,13 @@ class SubscriptionModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
         
+    def StartSession(self, address: str, subscription_id: int, tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgStartSessionRequest(
+            frm = self._account.address,
+            id = subscription_id,
+            address = address
+        )
+        return self.transaction([msg], tx_params)
     # Node subscriptions are returned by grpc querier in google's 'Any' type and need to be converted into desired protobuf type
     #
     #

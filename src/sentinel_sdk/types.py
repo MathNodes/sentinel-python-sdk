@@ -25,6 +25,12 @@ class TxParams:
     fee_amount: int = 31415
     gas: float = 0
     gas_multiplier: float = 1.5
+    
+@dataclass
+class Price:
+    denom: str = "udvpn"
+    base_value: str = "0"
+    quote_value: str  = "0"
 
 
 class PageRequest:
