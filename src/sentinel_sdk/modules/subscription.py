@@ -9,7 +9,7 @@ import sentinel_protobuf.sentinel.subscription.v3.msg_pb2 as msg_pb2_3
 
 from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
-from sentinel_sdk.types import PageRequest, TxParams
+from sentinel_sdk.types import PageRequest, TxParams, RenewalPricePolicy
 
 
 class SubscriptionModule(Querier, Transactor):
@@ -162,18 +162,64 @@ class SubscriptionModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
+    '''
     def Cancel(self, id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgCancelRequest(
             frm = self._account.address,
             id = id,
         )
         return self.transaction([msg], tx_params)
-        
+    '''
+    
+    def Cancel(self, id: int, tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgCancelSubscriptionRequest(
+            frm = self._account.address,
+            id = id,
+        )
+        return self.transaction([msg], tx_params)
+    
+    # Used for plan subs        
     def StartSession(self, address: str, subscription_id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2_3.MsgStartSessionRequest(
             frm = self._account.address,
             id = subscription_id,
-            address = address
+            node_address = address
+        )
+        return self.transaction([msg], tx_params)
+    
+    def ShareSubscription(self, subscription_id: int, wallet_address: str, bytes: str, tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgShareSubscriptionRequest(
+            frm = self._account.address,
+            id = subscription_id,
+            acc_address = address,
+            bytes = bytes,
+        )
+        return self.transaction([msg], tx_params)
+    
+    def RenewSubscription(self, subscription_id: int, denom: str, tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgRenewSubscriptionRequest(
+            frm = self._account.address,
+            id = subscription_id,
+            denom = denom,
+        )
+        return self.transaction([msg], tx_params)
+    
+    # id is plan_id 
+    
+    def StartSubscription(self, plan_id: int, denom: str, renewal: int = RenewalPricePolicy.RENEWAL_PRICE_POLICY_IF_LESSER_OR_EQUAL, tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgStartSubscriptionRequest(
+            frm = self._account.address,
+            id = plan_id,
+            denom = denom,
+            renewal_price_polilcy = renewal,
+        )
+        return self.transaction([msg], tx_params)
+    
+    def UpdateSubscription(self, subscription_id: int,  renewal: int = RenewalPricePolicy.RENEWAL_PRICE_POLICY_IF_LESSER_OR_EQUAL, tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgUpdateSubscriptionRequest(
+            frm = self._account.address,
+            id = id,
+            renewal_price_policy = renewal,
         )
         return self.transaction([msg], tx_params)
     # Node subscriptions are returned by grpc querier in google's 'Any' type and need to be converted into desired protobuf type

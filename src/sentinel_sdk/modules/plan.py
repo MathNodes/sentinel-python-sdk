@@ -4,6 +4,7 @@ import grpc
 import sentinel_protobuf.sentinel.plan.v2.querier_pb2 as sentinel_plan_v2_querier_pb2
 import sentinel_protobuf.sentinel.plan.v2.querier_pb2_grpc as sentinel_plan_v2_querier_pb2_grpc
 import sentinel_protobuf.sentinel.plan.v2.msg_pb2 as msg_pb2
+import sentinel_protobuf.sentinel.plan.v3.msg_pb2 as msg_pb2_3
 
 from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
@@ -59,7 +60,7 @@ class PlanModule(Querier, Transactor):
         return self.transaction([msg], tx_params)
 
     def LinkNode(self, plan_id: int, node_address: str, tx_params: TxParams = TxParams()):
-        msg = msg_pb2.MsgLinkNodeRequest(
+        msg = msg_pb2_3.MsgLinkNodeRequest(
             frm = self._provider_account.address,
             id = plan_id,
             node_address = node_address,
@@ -75,7 +76,7 @@ class PlanModule(Querier, Transactor):
         return self.transaction([msg], tx_params)
 
     def UnlinkNode(self, plan_id: int, node_address: str, tx_params: TxParams = TxParams()):
-        msg = msg_pb2.MsgUnlinkNodeRequest(
+        msg = msg_pb2_3.MsgUnlinkNodeRequest(
             frm = self._provider_account.address,
             id = plan_id,
             node_address = node_address,
