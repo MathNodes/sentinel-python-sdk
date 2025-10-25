@@ -191,7 +191,7 @@ class SubscriptionModule(Querier, Transactor):
         msg = msg_pb2_3.MsgShareSubscriptionRequest(
             frm = self._account.address,
             id = subscription_id,
-            acc_address = address,
+            acc_address = wallet_address,
             bytes = bytes,
         )
         return self.transaction([msg], tx_params)
