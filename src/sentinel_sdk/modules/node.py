@@ -10,9 +10,9 @@ import base64
 import hashlib
 import ecdsa
 import grpc
-import sentinel_protobuf.sentinel.node.v2.node_pb2 as node_pb2
-import sentinel_protobuf.sentinel.node.v2.querier_pb2 as sentinel_node_v2_querier_pb2
-import sentinel_protobuf.sentinel.node.v2.querier_pb2_grpc as sentinel_node_v2_querier_pb2_grpc
+import sentinel_protobuf.sentinel.node.v3.node_pb2 as node_pb2
+import sentinel_protobuf.sentinel.node.v3.querier_pb2 as sentinel_node_v3_querier_pb2
+import sentinel_protobuf.sentinel.node.v3.querier_pb2_grpc as sentinel_node_v3_querier_pb2_grpc
 import sentinel_protobuf.sentinel.node.v2.msg_pb2 as msg_pb2
 import sentinel_protobuf.sentinel.node.v3.msg_pb2 as msg_pb2_3
 
@@ -26,7 +26,7 @@ from .wireguard import WgKey
 class NodeModule(Querier, Transactor):
     def __init__(self, channel: grpc.Channel, node_timeout: int, account, client):
         self.node_timeout = node_timeout
-        self.__stub = sentinel_node_v2_querier_pb2_grpc.QueryServiceStub(channel)
+        self.__stub = sentinel_node_v3_querier_pb2_grpc.QueryServiceStub(channel)
 
         # Disable SSL verification
         self.__ssl_ctx = ssl.create_default_context()
@@ -39,18 +39,18 @@ class NodeModule(Querier, Transactor):
         self.__nodes_status_cache = {}
 
     def QueryParams(self) -> Any:
-        return self.__stub.QueryParams(sentinel_node_v2_querier_pb2.QueryParamsRequest()).params
+        return self.__stub.QueryParams(sentinel_node_v3_querier_pb2.QueryParamsRequest()).params
 
     def QueryNode(self, address: str) -> Any:
         r = self.__stub.QueryNode(
-            sentinel_node_v2_querier_pb2.QueryNodeRequest(address=address)
+            sentinel_node_v3_querier_pb2.QueryNodeRequest(address=address)
         )
         return r.node
 
     def QueryNodes(self, status: int, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QueryNodes,
-            request=sentinel_node_v2_querier_pb2.QueryNodesRequest,
+            request=sentinel_node_v3_querier_pb2.QueryNodesRequest,
             attribute="nodes",
             status=status.value,
             pagination=pagination,
@@ -58,7 +58,7 @@ class NodeModule(Querier, Transactor):
 
     def QueryNumOfNodesWithStatus(self, status: int) -> int:
         r = self.__stub.QueryNodes(
-            sentinel_node_v2_querier_pb2.QueryNodesRequest(status=status.value)
+            sentinel_node_v3_querier_pb2.QueryNodesRequest(status=status.value)
         )
         return r.pagination.total
 
@@ -104,7 +104,7 @@ class NodeModule(Querier, Transactor):
     ) -> list:
         return self.QueryAll(
             query=self.__stub.QueryNodesForPlan,
-            request=sentinel_node_v2_querier_pb2.QueryNodesForPlanRequest,
+            request=sentinel_node_v3_querier_pb2.QueryNodesForPlanRequest,
             attribute="nodes",
             status=status.value,
             id=plan_id,

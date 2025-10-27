@@ -66,7 +66,8 @@ class PlanModule(Querier, Transactor):
             node_address = node_address,
         )
         return self.transaction([msg], tx_params)
-
+    
+    '''
     def Subscribe(self, denom: str, plan_id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgSubscribeRequest(
             frm = self._account.address,
@@ -74,6 +75,7 @@ class PlanModule(Querier, Transactor):
             denom = denom,
         )
         return self.transaction([msg], tx_params)
+    '''
 
     def UnlinkNode(self, plan_id: int, node_address: str, tx_params: TxParams = TxParams()):
         msg = msg_pb2_3.MsgUnlinkNodeRequest(

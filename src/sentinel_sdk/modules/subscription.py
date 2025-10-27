@@ -152,7 +152,9 @@ class SubscriptionModule(Querier, Transactor):
             self.__ConvertAnyToPlanSubscription(subscription.value)
             for subscription in subscriptions
         ]
-
+        
+    # not in use anymore
+    '''
     def Allocate(self, address: str, bytes: str, id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgAllocateRequest(
             frm = self._account.address,
@@ -162,7 +164,7 @@ class SubscriptionModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
 
-    '''
+    
     def Cancel(self, id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgCancelRequest(
             frm = self._account.address,
@@ -171,6 +173,7 @@ class SubscriptionModule(Querier, Transactor):
         return self.transaction([msg], tx_params)
     '''
     
+    # id is subscription id
     def Cancel(self, id: int, tx_params: TxParams = TxParams()):
         msg = msg_pb2_3.MsgCancelSubscriptionRequest(
             frm = self._account.address,
@@ -178,12 +181,11 @@ class SubscriptionModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
     
-    # Used for plan subs        
-    def StartSession(self, address: str, subscription_id: int, tx_params: TxParams = TxParams()):
-        msg = msg_pb2_3.MsgStartSessionRequest(
+    def RenewSubscription(self, subscription_id: int, denom: str, tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgRenewSubscriptionRequest(
             frm = self._account.address,
             id = subscription_id,
-            node_address = address
+            denom = denom,
         )
         return self.transaction([msg], tx_params)
     
@@ -196,16 +198,7 @@ class SubscriptionModule(Querier, Transactor):
         )
         return self.transaction([msg], tx_params)
     
-    def RenewSubscription(self, subscription_id: int, denom: str, tx_params: TxParams = TxParams()):
-        msg = msg_pb2_3.MsgRenewSubscriptionRequest(
-            frm = self._account.address,
-            id = subscription_id,
-            denom = denom,
-        )
-        return self.transaction([msg], tx_params)
-    
     # id is plan_id 
-    
     def StartSubscription(self, plan_id: int, denom: str, renewal: int = RenewalPricePolicy.RENEWAL_PRICE_POLICY_IF_LESSER_OR_EQUAL, tx_params: TxParams = TxParams()):
         msg = msg_pb2_3.MsgStartSubscriptionRequest(
             frm = self._account.address,
@@ -222,6 +215,16 @@ class SubscriptionModule(Querier, Transactor):
             renewal_price_policy = renewal,
         )
         return self.transaction([msg], tx_params)
+    
+    # Used for plan subs        
+    def StartSession(self, address: str, subscription_id: int, tx_params: TxParams = TxParams()):
+        msg = msg_pb2_3.MsgStartSessionRequest(
+            frm = self._account.address,
+            id = subscription_id,
+            node_address = address
+        )
+        return self.transaction([msg], tx_params)
+    
     # Node subscriptions are returned by grpc querier in google's 'Any' type and need to be converted into desired protobuf type
     #
     #
