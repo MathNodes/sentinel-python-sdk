@@ -18,6 +18,7 @@ class Status(Enum):
 class NodeType(Enum):
     WIREGUARD = 1
     V2RAY = 2
+    OPENVPN = 3
 
 class RenewalPricePolicy(Enum):
     RENEWAL_PRICE_POLICY_UNSPECIFIED = 0

@@ -37,10 +37,10 @@ class NodeModule(Querier, Transactor):
         self._client = client
 
         self.__nodes_status_cache = {}
-
+        
     def QueryParams(self) -> Any:
         return self.__stub.QueryParams(sentinel_node_v3_querier_pb2.QueryParamsRequest()).params
-
+    
     def QueryNode(self, address: str) -> Any:
         r = self.__stub.QueryNode(
             sentinel_node_v3_querier_pb2.QueryNodeRequest(address=address)
@@ -63,15 +63,33 @@ class NodeModule(Querier, Transactor):
         return r.pagination.total
 
     def QueryNodeStatus(self, node: node_pb2.Node, is_in_thread: bool = False) -> str:
-        node_endpoint = node.remote_url
+        node_endpoint = "https://" + node.remote_addrs[0]
+        gb_price = ""
+        hr_price = ""
+        if node.gigabyte_prices:
+            for prices in node.gigabyte_prices:
+                gb_price = gb_price + prices.quote_value + prices.denom + ','
+        else:
+            gb_price = "0.0udvpn"
+        if node.hourly_prices:
+            for prices in node.hourly_prices:
+                hr_price = hr_price + prices.quote_value + prices.denom + ','
+        else:
+            hr_price = "0.0udvpn"
+        
+        gb_price = gb_price.rstrip(',')
+        hr_price = hr_price.rstrip(',')
+        print(f"GB Prices: {gb_price}\n Hourly Prices: {hr_price}")
+        print(f"Node Endpoint: {node_endpoint}")
         try:
             contents = urllib.request.urlopen(
-                f"{node_endpoint}/status",
+                f"{node_endpoint}",
                 context=self.__ssl_ctx,
                 timeout=self.node_timeout,
             ).read()
             contents = contents.decode("utf-8")
-        except urllib.error.URLError:
+        except urllib.error.URLError as E:
+            print(str(E))
             contents = '{"success":false,"urllib-error":"URLError encountered"}'
         except TimeoutError:
             contents = '{"success":false,"urllib-error":"Data reading timed out"}'
@@ -79,6 +97,11 @@ class NodeModule(Querier, Transactor):
             contents = '{"success":false,"http-error":"Remote endpoint closed connection"}'
         except:
             contents = '{"success":false,"error":"Unrecognizable error encountered"}'
+        contents = json.loads(contents)
+        contents['gigabyte_prices'] = gb_price
+        contents['hourly_prices']   = hr_price
+        contents = json.dumps(contents)
+        
         if is_in_thread:
             self.__nodes_status_cache[node.address] = contents
         else:

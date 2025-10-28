@@ -12,6 +12,7 @@ class Querier:
         pagination: PageRequest = None,
         **kwargs,
     ) -> list:
+        
         # ["status", "address", "id"] are the only valid kwargs
         request_arguments = {
             k: kwargs[k] for k in kwargs if k in ["status", "address", "id"]
@@ -34,5 +35,4 @@ class Querier:
             # Stop iteration if PageRequest contain a offset value
             if pagination.offset is not None:
                 break
-
         return items
