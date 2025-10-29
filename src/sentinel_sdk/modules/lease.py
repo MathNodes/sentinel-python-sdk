@@ -20,7 +20,7 @@ class LeaseModule(Querier, Transactor):
         self._provider_account = provider_account
         
     def EndLease(self, subscription_id: int, tx_params: TxParams = TxParams()):
-        msg = msg_pb2.MsgSubscribeRequest(
+        msg = msg_pb2.MsgEndLeaseRequest(
             frm = self._account.address,
             id = subscription_id,
         )
@@ -28,7 +28,7 @@ class LeaseModule(Querier, Transactor):
         return self.transaction([msg], tx_params)
     
     def RenewLease(self, subscription_id: int, hours: int, max_price: Price = Price(), tx_params: TxParams = TxParams()):
-        msg = msg_pb2.MsgSubscribeRequest(
+        msg = msg_pb2.MsgRenewLeaseRequest(
             frm = self._account.address,
             id = subscription_id,
             hours = hours,
@@ -38,7 +38,7 @@ class LeaseModule(Querier, Transactor):
         return self.transaction([msg], tx_params)
     
     def StartLease(self, node: str, hours: int, max_price: Price = Price(), renewal: int = RenewalPricePolicy.RENEWAL_PRICE_POLICY_IF_LESSER_OR_EQUAL, tx_params: TxParams = TxParams()):
-        msg = msg_pb2.MsgSubscribeRequest(
+        msg = msg_pb2.MsgStartLeaseRequest(
             frm = self._account.address,
             node_address = node,
             hours = hours,
@@ -49,7 +49,7 @@ class LeaseModule(Querier, Transactor):
         return self.transaction([msg], tx_params)
     
     def UpdateLease(self, subscription_id: int, renewal: int = RenewalPricePolicy.RENEWAL_PRICE_POLICY_IF_LESSER_OR_EQUAL, tx_params: TxParams = TxParams()):
-        msg = msg_pb2.MsgSubscribeRequest(
+        msg = msg_pb2.MsgUpdateLeaseRequest(
             frm = self._account.address,
             id = subscription_id,
             renewal_price_policy = renewal,
