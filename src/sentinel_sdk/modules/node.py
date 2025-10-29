@@ -70,12 +70,12 @@ class NodeModule(Querier, Transactor):
             for prices in node.gigabyte_prices:
                 gb_price = gb_price + prices.quote_value + prices.denom + ','
         else:
-            gb_price = "0.0udvpn"
+            gb_price = "0udvpn"
         if node.hourly_prices:
             for prices in node.hourly_prices:
                 hr_price = hr_price + prices.quote_value + prices.denom + ','
         else:
-            hr_price = "0.0udvpn"
+            hr_price = "0udvpn"
         
         gb_price = gb_price.rstrip(',')
         hr_price = hr_price.rstrip(',')

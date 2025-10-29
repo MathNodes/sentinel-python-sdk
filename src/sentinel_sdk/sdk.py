@@ -11,6 +11,7 @@ from sentinel_sdk.modules.swap import SwapModule
 from sentinel_sdk.modules.provider import ProviderModule
 from sentinel_sdk.modules.session import SessionModule
 from sentinel_sdk.modules.subscription import SubscriptionModule
+from sentinel_sdk.modules.lease import LeaseModule
 
 from mospy import Account
 from mospy.clients import GRPCClient
@@ -138,6 +139,7 @@ class SDKInstance:
         self.nodes = NodeModule(self._channel, 10, self._account, self._client)
         self.deposits = DepositModule(self._channel)
         self.plans = PlanModule(self._channel, self._account, self._provider_account, self._client)
+        self.lease = LeaseModule(self._channel, self._account, self._provider_account, self._client)
         self.providers = ProviderModule(self._channel, self._account, self._client)
         self.sessions = SessionModule(self._channel, self._account, self._client)
         self.subscriptions = SubscriptionModule(self._channel, self._account, self._client)
