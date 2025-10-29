@@ -1,6 +1,6 @@
 
 import grpc
-import sentinel_protobuf.sentinel.leace.v1.lease_pb2 as lease_pb2
+import sentinel_protobuf.sentinel.lease.v1.lease_pb2 as lease_pb2
 import sentinel_protobuf.sentinel.lease.v1.querier_pb2 as sentinel_subscription_v2_querier_pb2
 import sentinel_protobuf.sentinel.lease.v1.querier_pb2_grpc as sentinel_subscription_v2_querier_pb2_grpc
 import sentinel_protobuf.sentinel.subscription.v2.subscription_pb2 as subscription_pb2
