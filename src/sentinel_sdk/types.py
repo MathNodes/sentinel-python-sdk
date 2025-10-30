@@ -18,17 +18,7 @@ class Status(Enum):
 class NodeType(Enum):
     WIREGUARD = 1
     V2RAY = 2
-    OPENVPN = 3
-
-class RenewalPricePolicy(Enum):
-    RENEWAL_PRICE_POLICY_UNSPECIFIED = 0
-    RENEWAL_PRICE_POLICY_IF_LESSER = 1
-    RENEWAL_PRICE_POLICY_IF_LESSER_OR_EQUAL = 2
-    RENEWAL_PRICE_POLICY_IF_EQUAL = 3
-    RENEWAL_PRICE_POLICY_IF_NOT_EQUAL = 4
-    RENEWAL_PRICE_POLICY_IF_GREATER = 5
-    RENEWAL_PRICE_POLICY_IF_GREATER_OR_EQUAL = 6
-    RENEWAL_PRICE_POLICY_ALWAYS = 7
+    OPENVPN = 3 
 
 @dataclass
 class TxParams:
@@ -36,13 +26,6 @@ class TxParams:
     fee_amount: int = 31415
     gas: float = 0
     gas_multiplier: float = 1.5
-    
-@dataclass
-class Price:
-    denom: str = "udvpn"
-    base_value: str = "0"
-    quote_value: str  = "0"
-
 
 class PageRequest:
     """

@@ -6,10 +6,11 @@ import sentinel_protobuf.sentinel.subscription.v2.querier_pb2_grpc as sentinel_s
 import sentinel_protobuf.sentinel.subscription.v2.subscription_pb2 as subscription_pb2
 import sentinel_protobuf.sentinel.subscription.v2.msg_pb2 as msg_pb2
 import sentinel_protobuf.sentinel.subscription.v3.msg_pb2 as msg_pb2_3
+from sentinel_protobuf.sentinel.types.v1.renewal_pb2 import RenewalPricePolicy
 
 from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
-from sentinel_sdk.types import PageRequest, TxParams, RenewalPricePolicy
+from sentinel_sdk.types import PageRequest, TxParams
 
 
 class SubscriptionModule(Querier, Transactor):

@@ -15,10 +15,11 @@ import sentinel_protobuf.sentinel.node.v3.querier_pb2 as sentinel_node_v3_querie
 import sentinel_protobuf.sentinel.node.v3.querier_pb2_grpc as sentinel_node_v3_querier_pb2_grpc
 import sentinel_protobuf.sentinel.node.v2.msg_pb2 as msg_pb2
 import sentinel_protobuf.sentinel.node.v3.msg_pb2 as msg_pb2_3
+from sentinel_protobuf.sentinel.types.v1.price_pb2 import Price
 
 from sentinel_sdk.querier.querier import Querier
 from sentinel_sdk.transactor.transactor import Transactor
-from sentinel_sdk.types import PageRequest, TxParams, NodeType, Price
+from sentinel_sdk.types import PageRequest, TxParams, NodeType
 
 from .wireguard import WgKey
 
@@ -165,7 +166,7 @@ class NodeModule(Querier, Transactor):
         return self.transaction([msg], tx_params)
     '''
     
-    def SubscribeToNode(self, node_address: str, gigabytes: int = 0, hours: int = 0, price: Price = Price(), tx_params: TxParams = TxParams()):
+    def SubscribeToNode(self, node_address: str, price: Price, gigabytes: int = 0, hours: int = 0, tx_params: TxParams = TxParams()):
         msg = msg_pb2_3.MsgStartSessionRequest(
             frm = self._account.address,
             gigabytes = gigabytes,
