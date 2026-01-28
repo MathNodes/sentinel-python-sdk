@@ -38,6 +38,7 @@ class Transactor:
         self,
         messages: list,
         tx_params: TxParams = TxParams(),
+        next_sequence: bool = False
     ) -> dict:
         if self._account is None or self._client is None:
             raise ValueError("Transactor was not initialized due missing secret, unable to transact")
@@ -57,7 +58,10 @@ class Transactor:
             tx.add_raw_msg(message, type_url=f"/{message.DESCRIPTOR.full_name}")
 
         # Required before each tx of we get account sequence mismatch, expected 945, got 944: incorrect account sequence
-        self._client.load_account_data(account=self._account)
+        #self._client.load_account_data(account=self._account)
+        
+        if next_sequence:
+            self._account.increase_sequence()
 
         # inplace, auto-update gas with update=True
         # auto calculate the gas only if was not already passed as args:

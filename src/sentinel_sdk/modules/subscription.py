@@ -218,13 +218,13 @@ class SubscriptionModule(Querier, Transactor):
         return self.transaction([msg], tx_params)
     
     # Used for plan subs        
-    def StartSession(self, address: str, subscription_id: int, tx_params: TxParams = TxParams()):
+    def StartSession(self, address: str, subscription_id: int, next_sequence: bool = False,  tx_params: TxParams = TxParams()):
         msg = msg_pb2_3.MsgStartSessionRequest(
             frm = self._account.address,
             id = subscription_id,
             node_address = address
         )
-        return self.transaction([msg], tx_params)
+        return self.transaction([msg], tx_params, next_sequence)
     
     # Node subscriptions are returned by grpc querier in google's 'Any' type and need to be converted into desired protobuf type
     #
