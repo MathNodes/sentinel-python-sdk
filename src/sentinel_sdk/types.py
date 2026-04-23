@@ -18,6 +18,7 @@ class Status(Enum):
 class NodeType(Enum):
     WIREGUARD = 1
     V2RAY = 2
+    OPENVPN = 3 
 
 @dataclass
 class TxParams:
@@ -25,7 +26,6 @@ class TxParams:
     fee_amount: int = 31415
     gas: float = 0
     gas_multiplier: float = 1.5
-
 
 class PageRequest:
     """
