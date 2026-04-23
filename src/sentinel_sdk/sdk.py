@@ -151,7 +151,7 @@ class SDKInstance:
         self.__load_modules()
 
     def renew_grpc(self, grpcaddr: str, grpcport: int, use_ssl: bool = False):
-        self._client = self.__create_client(grpcaddr, grpcport)
+        self._client = self.__create_client(grpcaddr, grpcport, use_ssl)
         self._client.load_account_data(account=self._account)
         self.__load_modules()
         

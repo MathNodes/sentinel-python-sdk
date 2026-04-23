@@ -153,20 +153,8 @@ class NodeModule(Querier, Transactor):
             remote_url=remote_url,
         )
         return self.transaction([msg], tx_params)
-
-    '''
-    def SubscribeToNode(self, node_address: str, gigabytes: int = 0, hours: int = 0, denom: str = "udvpn", tx_params: TxParams = TxParams()):
-        msg = msg_pb2.MsgSubscribeRequest(
-            frm = self._account.address,
-            denom = denom,
-            gigabytes = gigabytes,
-            hours = hours,
-            node_address = node_address,
-        )
-        return self.transaction([msg], tx_params)
-    '''
     
-    def SubscribeToNode(self, node_address: str, price: Price, gigabytes: int = 0, hours: int = 0, tx_params: TxParams = TxParams()):
+    def SubscribeToNode(self, node_address: str, price: Price, gigabytes: int = 0, hours: int = 0, next_sequence: bool = False, tx_params: TxParams = TxParams()):
         msg = msg_pb2_3.MsgStartSessionRequest(
             frm = self._account.address,
             gigabytes = gigabytes,
@@ -174,7 +162,7 @@ class NodeModule(Querier, Transactor):
             node_address = node_address,
             max_price = price,
         )
-        return self.transaction([msg], tx_params)
+        return self.transaction([msg], tx_params, next_sequence)
     def UpdateNodeDetails(self, gigabyte_prices: int, hourly_prices: int, remote_url: str, tx_params: TxParams = TxParams()):
         msg = msg_pb2.MsgUpdateDetailsRequest(
             frm = self._account.address,
