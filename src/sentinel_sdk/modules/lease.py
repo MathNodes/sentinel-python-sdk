@@ -1,3 +1,4 @@
+from typing import Any
 
 import grpc
 import sentinel_protobuf.sentinel.lease.v1.lease_pb2 as lease_pb2
