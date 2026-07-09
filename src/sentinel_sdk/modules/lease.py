@@ -40,7 +40,7 @@ class LeaseModule(Querier, Transactor):
             pagination=pagination,
         )
         
-    def QueryNodeLeases(self, str: address, pagination: PageRequest = None) -> list:
+    def QueryNodeLeases(self, address: str, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QueryLeasesForNode,
             request=sentinel_lease_v1_querier_pb2.QueryLeasesForNodeRequest,
@@ -49,7 +49,7 @@ class LeaseModule(Querier, Transactor):
             pagination=pagination,
         )
     
-    def QueryProviderLeases(self, str: address, pagination: PageRequest = None) -> list:
+    def QueryProviderLeases(self, address: str, pagination: PageRequest = None) -> list:
         return self.QueryAll(
             query=self.__stub.QueryLeasesForProvider,
             request=sentinel_lease_v1_querier_pb2.QueryLeasesForProviderRequest,
