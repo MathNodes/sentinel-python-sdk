@@ -209,7 +209,7 @@ class SubscriptionModule(Querier, Transactor):
             frm = self._account.address,
             id = plan_id,
             denom = denom,
-            renewal_price_polilcy = renewal,
+            renewal_price_policy = renewal,
         )
         return self.transaction([msg], tx_params)
     
