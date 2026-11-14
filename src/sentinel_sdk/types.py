@@ -19,6 +19,10 @@ class NodeType(Enum):
     WIREGUARD = 1
     V2RAY = 2
     OPENVPN = 3 
+    XRAY = 4
+    AMNEZIAWG = 5
+    HYSTERIA2 = 6
+    
 
 @dataclass
 class TxParams:
